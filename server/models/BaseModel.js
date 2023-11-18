@@ -8,7 +8,7 @@ class BaseModel extends Model {
 	created_at;
 	updated_at;
 
-	$afterInsert() {
+	$beforeInsert() {
 		this.created_at = new Date().now();
 	}
 
