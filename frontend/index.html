@@ -4,6 +4,7 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Document</title>
+		<link rel="stylesheet" href="style.css" />
 	</head>
 	<body>
 		<header><!--Header of site--></header>
@@ -19,19 +20,15 @@
 			<button id="plus"><!--Add photo/file--></button>
 			<button id="send"><!--Send--></button>
 		</main>
-		<aside><!--Online users and chat rooms--></aside>
+		<aside>
+			<div id="activeUsers"></div>
+			<template id="userCardTemplate">
+				<div class="userCard">
+					<span></span>
+				</div>
+			</template>
+		</aside>
 	</body>
-	<script>
-		async function getResponse() {
-			const response = await fetch("http://localhost:3000");
-			if (!response.ok) {
-				return;
-			}
-			const result = await response.json();
-			document.querySelector("body").innerText = result.message;
-		}
 
-		getResponse();
-	</script>
 	<script src="./main.js" type="module"></script>
 </html>
