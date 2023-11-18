@@ -48,7 +48,7 @@ io.on("connection", (socket) => {
 // 		username: asdf
 // 	}
 // ]
-const activeUsers = [];
+let activeUsers = [];
 
 io.on("connection", (socket) => {
 	socket.emit("users", activeUsers);
@@ -58,6 +58,9 @@ io.on("connection", (socket) => {
 		socketId: socket.id,
 	};
 	activeUsers.push(newEntry);
-
 	socket.broadcast.emit("users", activeUsers);
+	socket.on("disconnect", () => {
+		activeUsers = activeUsers.filter((user) => user.socketId !== socket.id);
+		socket.broadcast.emit("users", activeUsers);
+	});
 });

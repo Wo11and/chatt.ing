@@ -1,6 +1,9 @@
 import { io } from "socket.io-client";
 import { localStorageSevice } from "./services/LocalStorageSevice";
 
+const activeUsersColumn = document.getElementById("activeUsers");
+const userCardTemplate = document.querySelector("#userCardTemplate");
+
 const socket = io(import.meta.env.VITE_SERVER_ADRESS, {
 	autoConnect: false,
 });
@@ -20,11 +23,13 @@ socket.onAny((event, ...args) => {
 });
 
 socket.on("users", (users) => {
-	const activeUsersColumn = document.getElementById("activeUsers");
+	activeUsersColumn.innerHTML = "";
 
 	users.forEach((user) => {
-		activeUsersColumn.innerHTML = "";
-		const userCardTemplate = document.querySelector("#userCardTemplate");
+		if (user.userId === tempAuth.id) {
+			return;
+		}
+
 		const clone = userCardTemplate.content.cloneNode(true);
 		let cardContent = clone.querySelectorAll("span");
 		cardContent[0].textContent = user.username;
