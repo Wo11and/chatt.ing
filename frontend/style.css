@@ -1,0 +1,23 @@
+body {
+	display: flex;
+	--highlighted: grey;
+}
+h3 {
+	margin: 0;
+}
+aside {
+	box-shadow: 0 2px 3px grey inset;
+	padding: 10px;
+}
+
+#activeUsers {
+	display: flex;
+	flex-direction: column;
+}
+.userCard {
+	padding: 10px 20px;
+	border-radius: 8px;
+}
+.userCard:hover {
+	background-color: var(--highlighted);
+}
