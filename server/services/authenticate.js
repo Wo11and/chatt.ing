@@ -10,12 +10,12 @@ dotenv.config();
 const config = {
   client: 'pg',
   connection: {
-    connectionString: process.env.DATABASE_URL,
+    connectionString: process.env.DB_URL,
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     user: process.env.DB_USER,
     database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
+    password: process.env.DB_PASS,
     ssl: false,
   },
 };
@@ -94,8 +94,8 @@ export class AuthenticationService{
                 password: hashedPassword,
             }, 'username');
             console.log("Created user: " + userId);
-            const token = jsonwebtoken.sign({username}, webTokenSecret, 
-                { algorithm: 'RS256' },{ expiresIn: "1h" });
+            const token = jsonwebtoken.sign({username, password},
+                webTokenSecret, {expiresIn: '1h'});
             return token;
         } catch (error) {
             // Handle any errors that occur during registration
@@ -128,7 +128,9 @@ export class AuthenticationService{
         });
 
         //id -> db id
-        return generateWebToken(username);
+        const token = jsonwebtoken.sign({username, password},
+            webTokenSecret, {expiresIn: '1h'});
+        return token;
         }
         catch(err){
             console.log("Error during login: ", err);
