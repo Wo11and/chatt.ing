@@ -1,9 +1,7 @@
 import jsonwebtoken from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import Knex from "knex";
-
-import { database } from "../../knexconfig.js";
-const pg = Knex(database);
+import "dotenv/config";
+import database from "../knexconfig.js";
 
 const webTokenSecret = process.env.WEB_TOKEN_SECRET;
 const bcrypt_saltRounds = 10;
@@ -36,6 +34,8 @@ export class AuthenticationService {
         try {
             const token = this.register(username, password);
             res.json({ token });
+            res.writeHead(200);
+            res.end();
         } catch (err) {
             console.log(err);
             console.log("cant register");
@@ -49,6 +49,8 @@ export class AuthenticationService {
         try {
             const token = this.login(username, password);
             res.json({ token });
+            res.writeHead(200);
+            res.end();
         } catch (err) {
             console.log(err);
             console.log("cant login");
@@ -59,8 +61,8 @@ export class AuthenticationService {
     async register(username, password) {
         try {
             //connect to db
-            await pg.raw("SELECT 1");
-            const user = await pg("users").where("username", username).first();
+            await database.raw("SELECT 1");
+            const user = await database("users").where("username", username).first();
             if (user !== undefined) {
                 // If username exists, return an error or throw an exception
                 throw new Error("Username already exists");
@@ -68,7 +70,7 @@ export class AuthenticationService {
             const hashedPassword = await bcrypt.hash(password, bcrypt_saltRounds);
             // Store hash and username in DB
             //...
-            const [userId] = await pg("users").insert(
+            const [userId] = await database("users").insert(
                 {
                     username,
                     password: hashedPassword,
@@ -90,7 +92,7 @@ export class AuthenticationService {
     async login(username, password) {
         try {
             //check if user exists in db
-            const user = await pg("users").where("username", username).first();
+            const user = await database("users").where("username", username).first();
             if (!user) {
                 // If username exists, return an error or throw an exception
                 throw new Error("Username doesnt exist");
