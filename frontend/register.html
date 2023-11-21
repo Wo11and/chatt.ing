@@ -58,28 +58,9 @@
     </svg>
 
 </body>
+<script src="./authenticationServices.js" type="module"></script>
 <script>
-    document.getElementById('registrationForm').addEventListener('submit', function (event) {
-        event.preventDefault();
-
-        const formData = new FormData(event.target);
-        // Make a POST request to the server to register the user
-        fetch('http://localhost:3000/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(Object.fromEntries(formData)),
-        })
-            .then(response => response.json())
-            .then(data => {
-                // Store the token in local storage
-                localStorage.setItem('token', data.token);
-                console.log('Token stored in local storage:', data.token);
-                window.location.href = 'http://localhost:3000/chat.html';
-            })
-            .catch(error => console.error('Error:', error));
-    });
+    document.getElementById('registrationForm').addEventListener('submit', register(event));
 </script>
 
 </html>
