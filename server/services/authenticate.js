@@ -1,7 +1,7 @@
 import jsonwebtoken from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import "dotenv/config";
-import database from "../knexconfig.js";
+import { database } from "../knexconfig.js";
 
 const webTokenSecret = process.env.WEB_TOKEN_SECRET;
 const bcrypt_saltRounds = 10;
@@ -40,6 +40,8 @@ export class AuthenticationService {
             console.log(err);
             console.log("cant register");
             res.writeHead(400);
+            res.json({ undefined });
+            res.end();
         }
     }
 
@@ -55,6 +57,8 @@ export class AuthenticationService {
             console.log(err);
             console.log("cant login");
             res.writeHead(400);
+            res.json({ undefined });
+            res.end();
         }
     }
 
