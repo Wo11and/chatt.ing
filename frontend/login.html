@@ -10,7 +10,7 @@
 
 		<div class="grid">
 	  
-		  <form action="http://localhost:3000/login" method="POST" class="form login">
+		  <form action="http://localhost:3000/login" method="POST" class="form login" id="registrationForm">
 	  
 			<div class="form__field">
 			  <label for="login__username"><svg class="icon"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#user"></use></svg><span class="hidden">Username</span></label>
@@ -36,15 +36,26 @@
 	  
 	  </body>
 	<script>
-		async function getResponse() {
-			const response = await fetch("http://localhost:3000");
-			if (!response.ok) {
-				return;
-			}
-			const result = await response.json();
-			document.querySelector("body").innerText = result.message;
-		}
+		document.getElementById('registrationForm').addEventListener('submit', function (event) {
+				event.preventDefault();
 
-		getResponse();
+				const formData = new FormData(event.target);
+			// Make a POST request to the server to register the user
+			fetch('http://localhost:3000/login', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(Object.fromEntries(formData)),
+			})
+				.then(response => response.json())
+				.then(data => {
+					// Store the token in local storage
+					localStorage.setItem('token', data.token);
+					console.log('Token stored in local storage:', data.token);
+					window.location.href = 'http://localhost:3000/chat.html';
+				})
+				.catch(error => console.error('Error:', error));
+		});
 	</script>
 </html>
