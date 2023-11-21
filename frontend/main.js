@@ -5,8 +5,18 @@ const activeUsersColumn = document.getElementById("activeUsers");
 const userCardTemplate = document.querySelector("#userCardTemplate");
 
 const socket = io(import.meta.env.VITE_SERVER_ADRESS, {
-	autoConnect: false,
+    autoConnect: false,
 });
+
+const token = localStorage.getItem("token");
+fetch("http://localhost:3000/", {
+    headers: {
+        Authorization: `Bearer ${token}`,
+    },
+})
+    .then((response) => response.json())
+    .then((data) => console.log(data))
+    .catch((error) => console.error("Error:", error));
 
 // TODO: Authenticate user and get jwtToken
 // socket.auth = { token };
@@ -19,22 +29,22 @@ socket.connect();
 
 // logging every event sent to socket for debugging purposes
 socket.onAny((event, ...args) => {
-	console.log(event, args);
+    console.log(event, args);
 });
 
 socket.on("users", (users) => {
-	activeUsersColumn.innerHTML = "";
+    activeUsersColumn.innerHTML = "";
 
-	users.forEach((user) => {
-		if (user.userId === tempAuth.id) {
-			return;
-		}
+    users.forEach((user) => {
+        if (user.userId === tempAuth.id) {
+            return;
+        }
 
-		const clone = userCardTemplate.content.cloneNode(true);
-		let cardContent = clone.querySelectorAll("span");
-		cardContent[0].textContent = user.username;
-		activeUsersColumn.appendChild(clone);
-	});
+        const clone = userCardTemplate.content.cloneNode(true);
+        let cardContent = clone.querySelectorAll("span");
+        cardContent[0].textContent = user.username;
+        activeUsersColumn.appendChild(clone);
+    });
 });
 
 // socket.on("connect_error", (err) => {
