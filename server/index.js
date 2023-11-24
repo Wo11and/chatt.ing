@@ -31,16 +31,6 @@ app.get("/", (req, res) => {
 	res.send({ message: "Hello World!" });
 });
 
-io.on("connection", function (socket) {
-	console.log("user connected");
-	socket.on("chat message", function (msg) {
-		io.emit("chat message", msg);
-	});
-	socket.on("disconnect", function () {
-		console.log("user disconnected");
-	});
-});
-
 server.listen(port, () => {
 	console.log(`Server listening on port ${port}`);
 });
@@ -82,6 +72,12 @@ io.on("connection", (socket) => {
 	socket.on("disconnect", () => {
 		activeUsers = activeUsers.filter((user) => user.socketId !== socket.id);
 		socket.broadcast.emit("users", activeUsers);
+	});
+
+	socket.on("private message", (message) => {
+		const id = message.to;
+		const socketId = activeUsers.find((user) => id === user.userId).socketId;
+		socket.to(socketId).emit("private message", message);
 	});
 });
 
