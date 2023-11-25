@@ -95,19 +95,3 @@ io.on("connection", (socket) => {
 		socket.emit("get chat", result);
 	});
 });
-
-async function run() {
-	try {
-		// Connect the client to the server	(optional starting in v4.7)
-		await mongoDbClient.connect();
-		// Send a ping to confirm a successful connection
-		await mongoDbClient.db("chatting").command({ ping: 1 });
-		console.log(
-			"Pinged your deployment. You successfully connected to MongoDB!"
-		);
-	} finally {
-		// Ensures that the mongoDbClient will close when you finish/error
-		await mongoDbClient.close();
-	}
-}
-run().catch(console.dir);

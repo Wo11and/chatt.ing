@@ -1,16 +1,13 @@
 import { mongoDbClient } from "../mongodbconfig.js";
 
 class MessageService {
+	messages = mongoDbClient.db("chatting").collection("messages");
 	async save(message) {
-		await mongoDbClient.connect();
-		const messages = mongoDbClient.db("chatting").collection("messages");
-		messages.insertOne(message);
+		this.messages.insertOne(message);
 	}
 
 	async getConversation(id1, id2, page = 1, pageSize = 5) {
-		await mongoDbClient.connect();
-		const messages = mongoDbClient.db("chatting").collection("messages");
-		const result = messages
+		const result = this.messages
 			.find({
 				$or: [
 					{
