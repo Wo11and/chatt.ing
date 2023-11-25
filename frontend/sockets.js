@@ -85,7 +85,7 @@ socket.on("private message", (message) => {
 socket.on("get chat", (messages) => {
 	chatCanvas.innerHTML = "";
 	for (let i = messages.length - 1; i >= 0; i--) {
-		displayMessage(messages[i], messages[i].to.id !== tempAuth.id);
+		displayMessage(messages[i], messages[i].to.id === tempAuth.id);
 	}
 });
 // socket.on("connect_error", (err) => {
