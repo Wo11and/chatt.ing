@@ -68,6 +68,8 @@ socket.on("users", (users) => {
 			reciever = { id, username };
 			chatInfo.innerHTML = "";
 			chatInfo.textContent = `Chat with ${username}`;
+
+			socket.emit("get chat", id, tempAuth.id);
 		});
 
 		activeUsersColumn.appendChild(clone);
@@ -77,6 +79,13 @@ socket.on("users", (users) => {
 socket.on("private message", (message) => {
 	if (reciever && message.from.id === reciever.id) {
 		displayMessage(message, true);
+	}
+});
+
+socket.on("get chat", (messages) => {
+	chatCanvas.innerHTML = "";
+	for (let i = messages.length - 1; i >= 0; i--) {
+		displayMessage(messages[i], messages[i].to.id !== tempAuth.id);
 	}
 });
 // socket.on("connect_error", (err) => {

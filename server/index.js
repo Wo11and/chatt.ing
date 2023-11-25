@@ -87,11 +87,12 @@ io.on("connection", (socket) => {
 
 		messageService.save(message);
 
-		console.log(
-			await messageService.getConversation(message.to.id, message.from.id, 1, 2)
-		);
-
 		socket.to(socketId).emit("private message", message);
+	});
+
+	socket.on("get chat", async (id1, id2) => {
+		const result = await messageService.getConversation(id1, id2);
+		socket.emit("get chat", result);
 	});
 });
 
