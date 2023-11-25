@@ -28,8 +28,9 @@ sendButton.addEventListener("click", (e) => {
 
 	const message = {
 		from: { username: tempAuth.name, id: tempAuth.id }, // TODO: Add token
-		to: reciever.id,
+		to: { username: reciever.username, id: reciever.id },
 		content: currentMessage,
+		createdAt: new Date(),
 	};
 
 	console.log(message);

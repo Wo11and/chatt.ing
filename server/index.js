@@ -5,6 +5,7 @@ import { createServer } from "node:http";
 import "dotenv/config";
 import { AuthenticationService } from "./services/authenticate.js";
 import { mongoDbClient } from "./mongodbconfig.js";
+import { messageService } from "./services/MessageService.js";
 
 const app = express();
 app.use(cors());
@@ -74,9 +75,22 @@ io.on("connection", (socket) => {
 		socket.broadcast.emit("users", activeUsers);
 	});
 
-	socket.on("private message", (message) => {
-		const id = message.to;
-		const socketId = activeUsers.find((user) => id === user.userId).socketId;
+	socket.on("private message", async (message) => {
+		const id = message.to.id;
+		const user = activeUsers.find((user) => id === user.userId);
+
+		if (!user) {
+			return;
+		}
+
+		const socketId = user.socketId;
+
+		messageService.save(message);
+
+		console.log(
+			await messageService.getConversation(message.to.id, message.from.id, 1, 2)
+		);
+
 		socket.to(socketId).emit("private message", message);
 	});
 });
@@ -86,7 +100,7 @@ async function run() {
 		// Connect the client to the server	(optional starting in v4.7)
 		await mongoDbClient.connect();
 		// Send a ping to confirm a successful connection
-		await mongoDbClient.db("admin").command({ ping: 1 });
+		await mongoDbClient.db("chatting").command({ ping: 1 });
 		console.log(
 			"Pinged your deployment. You successfully connected to MongoDB!"
 		);
