@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import { createServer } from "node:http";
 import "dotenv/config";
 import { AuthenticationService } from "./services/authenticate.js";
+import { messageService } from "./services/MessageService.js";
 
 const app = express();
 app.use(cors());
@@ -33,16 +34,6 @@ app.get("/authencticate", auth.checkTokenMiddleware, (req, res) => {
 
 app.get("/", (req, res) => {
     res.send({ message: "Hello World!" });
-});
-
-io.on("connection", function (socket) {
-    console.log("user connected");
-    socket.on("chat message", function (msg) {
-        io.emit("chat message", msg);
-    });
-    socket.on("disconnect", function () {
-        console.log("user disconnected");
-    });
 });
 
 server.listen(port, () => {
@@ -86,5 +77,25 @@ io.on("connection", (socket) => {
     socket.on("disconnect", () => {
         activeUsers = activeUsers.filter((user) => user.socketId !== socket.id);
         socket.broadcast.emit("users", activeUsers);
+    });
+
+    socket.on("private message", async (message) => {
+        const id = message.to.id;
+        const user = activeUsers.find((user) => id === user.userId);
+
+        if (!user) {
+            return;
+        }
+
+        const socketId = user.socketId;
+
+        messageService.save(message);
+
+        socket.to(socketId).emit("private message", message);
+    });
+
+    socket.on("get chat", async (id1, id2) => {
+        const result = await messageService.getConversation(id1, id2);
+        socket.emit("get chat", result);
     });
 });

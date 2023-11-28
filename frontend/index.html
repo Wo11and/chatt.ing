@@ -10,15 +10,14 @@
 		<header><!--Header of site--></header>
 		<main>
 			<!--Current chat if open-->
-			<div><!--Info about current chat--></div>
-			<div><!--Chat itself--></div>
-			<textarea>
- <!--Type area-->
-
-			</textarea
-			>
+			<div id="chatInfo"><!--Info about current chat--></div>
+			<div id="chatCanvas"><!--Chat itself--></div>
+			<textarea id="messageBox"></textarea>
+			<template id="messageTemplate">
+				<div class="message"></div>
+			</template>
 			<button id="plus"><!--Add photo/file--></button>
-			<button id="send"><!--Send--></button>
+			<button id="sendButton">Send</button>
 		</main>
 		<aside>
 			<h3>Currently online:</h3>
