@@ -1,6 +1,8 @@
 body {
 	display: flex;
 	--highlighted: grey;
+	--incoming-background: #f3f3f3;
+	--outgoing-background: #23b793;
 }
 h3 {
 	margin: 0;
@@ -20,4 +22,27 @@ aside {
 }
 .userCard:hover {
 	background-color: var(--highlighted);
+}
+
+#chatCanvas {
+	display: flex;
+	flex-direction: column;
+}
+
+.message {
+	width: fit-content;
+	padding: 20px;
+	border-radius: 8px;
+	margin: 10px;
+	word-break: break-all;
+}
+
+.incoming {
+	background-color: var(--incoming-background);
+	align-self: flex-start;
+}
+
+.outgoing {
+	background-color: var(--outgoing-background);
+	align-self: flex-end;
 }
