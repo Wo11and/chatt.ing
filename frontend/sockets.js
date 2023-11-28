@@ -35,7 +35,7 @@ sendButton.addEventListener("click", (e) => {
 
 	console.log(message);
 	socket.emit("private message", message);
-	displayMessage(message, false);
+	displayMessage(message, {incoming:false});
 });
 
 const tempAuth = JSON.parse(new localStorageSevice("chatting_user").get());
@@ -62,7 +62,7 @@ socket.on("users", (users) => {
 		console.log(clone);
 
 		const cardWrapper = clone.querySelector("div");
-		cardWrapper.addEventListener("click", (e) => {
+		cardWrapper.addEventListener("click", () => {
 			const id = user.userId;
 			const username = user.username;
 			reciever = { id, username };
@@ -78,14 +78,14 @@ socket.on("users", (users) => {
 
 socket.on("private message", (message) => {
 	if (reciever && message.from.id === reciever.id) {
-		displayMessage(message, true);
+		displayMessage(message, {incoming:true});
 	}
 });
 
 socket.on("get chat", (messages) => {
 	chatCanvas.innerHTML = "";
 	for (let i = messages.length - 1; i >= 0; i--) {
-		displayMessage(messages[i], messages[i].to.id === tempAuth.id);
+		displayMessage(messages[i], {incoming:messages[i].to.id === tempAuth.id});
 	}
 });
 // socket.on("connect_error", (err) => {
@@ -94,10 +94,10 @@ socket.on("get chat", (messages) => {
 //     }
 //   });
 
-function displayMessage(message, incoming) {
+function displayMessage(message, options) {
 	const clone = messageTemplate.content.cloneNode(true);
 	let cardContent = clone.querySelector(".message");
-	cardContent.classList.add(incoming ? "incoming" : "outgoing");
+	cardContent.classList.add(options.incoming ? "incoming" : "outgoing");
 	cardContent.textContent = message.content;
 	chatCanvas.appendChild(clone);
 }

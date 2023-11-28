@@ -4,7 +4,6 @@ import { Server } from "socket.io";
 import { createServer } from "node:http";
 import "dotenv/config";
 import { AuthenticationService } from "./services/authenticate.js";
-import { mongoDbClient } from "./mongodbconfig.js";
 import { messageService } from "./services/MessageService.js";
 
 const app = express();
