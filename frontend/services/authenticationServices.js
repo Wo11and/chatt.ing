@@ -65,11 +65,15 @@ export class Authentication {
         const user = { username, password };
         try {
             const data = await this.httpServ.post("/login", user);
+            if (!data) {
+                return false;
+            }
             localStorage.setItem("token", data.token);
             console.log("Token stored in local storage:", data.token);
             window.location.href = `${frontendAddress}/index.html`;
         } catch (error) {
             console.error("Error:", error);
+            return false;
         }
     }
 
@@ -77,6 +81,7 @@ export class Authentication {
         const user = { username, password };
         try {
             const data = await this.httpServ.post("/register", user);
+            console.log(data);
             localStorage.setItem("token", data.token);
             console.log("Token stored in local storage:", data.token);
             window.location.href = `${frontendAddress}/index.html`;

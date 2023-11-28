@@ -21,7 +21,7 @@ app.use(express.json());
 
 app.post("/login", auth.loginMiddleware);
 
-app.post("/register", auth.loginMiddleware);
+app.post("/register", auth.registerMiddleware);
 
 //check token fore every http request to the backend below this line
 app.use(auth.checkTokenMiddleware);
