@@ -12,12 +12,21 @@
 			<!--Current chat if open-->
 			<div id="chatInfo"><!--Info about current chat--></div>
 			<div id="chatCanvas"><!--Chat itself--></div>
-			<textarea id="messageBox"></textarea>
-			<template id="messageTemplate">
-				<div class="message"></div>
-			</template>
-			<button id="plus"><!--Add photo/file--></button>
-			<button id="sendButton">Send</button>
+			<div class="textareaAndButtons">
+				<textarea id="messageBox"></textarea>
+				<template id="messageTemplate">
+					<div class="message"></div>
+				</template>
+				<div class="buttons">
+					<button id="plus">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus"
+							viewBox="0 0 16 16">
+							<path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4" />
+						</svg>
+					</button>
+					<button id="sendButton">Send</button>
+				</div>
+			</div>
 		</main>
 		<aside>
 			<h3>Currently online:</h3>
