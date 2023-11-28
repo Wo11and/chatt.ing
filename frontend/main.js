@@ -1,20 +1,21 @@
 import { io } from "socket.io-client";
 import { localStorageSevice } from "./services/LocalStorageSevice";
-import "./authenticationServices";
+import { Authentication } from "./services/authenticationServices";
 
 const activeUsersColumn = document.getElementById("activeUsers");
 const userCardTemplate = document.querySelector("#userCardTemplate");
 const auth = new Authentication();
-const frontendAddress = import.meta.env.VITE_FRONTEND_ADDRESS;
+const frontendAddress = import.meta.env.VITE_SERVER_ADDRESS;
 
-const socket = io(import.meta.env.VITE_SERVER_ADRESS, {
+const socket = io(import.meta.env.VITE_SERVER_ADDRESS, {
     autoConnect: false,
 });
 
 // TODO: Authenticate user and get jwtToken
 try {
-    auth.authenticate();
+    await auth.authenticate();
 } catch (err) {
+    //console.log(err);
     window.location.href = `${frontendAddress}/register.html`;
 }
 // socket.auth = { token };

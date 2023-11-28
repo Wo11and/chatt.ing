@@ -6,17 +6,49 @@ import { database } from "../knexconfig.js";
 const webTokenSecret = process.env.WEB_TOKEN_SECRET;
 const bcrypt_saltRounds = 10;
 
+async function login(username, password) {
+    try {
+        //check if user exists in db
+        const user = await database("users").where("username", username).first();
+        if (!user) {
+            // If username exists, return an error or throw an exception
+            throw new Error("Username doesnt exist");
+        }
+        // hash == db password
+
+        bcrypt.compare(password, user.password, function (err, result) {
+            // result == true/false
+            if (err) {
+                console.log(err);
+                throw err;
+            }
+            if (!result) {
+                throw new Error("Password not matching");
+            }
+        });
+
+        //id -> db id
+        const token = jsonwebtoken.sign({ username, id: user.id }, webTokenSecret, {
+            expiresIn: "1h",
+        });
+        return token;
+    } catch (err) {
+        console.log("Error during login: ", err);
+        throw err;
+    }
+}
+
 export class AuthenticationService {
     checkTokenMiddleware = (req, res, next) => {
-        const header = req.headers["authorization"];
-        if (typeof header !== "undefined") {
+        const header = req.headers["Authorization"];
+        if (header) {
             const bearer = header.split(" ");
             const token = bearer[1];
             if (!token) {
                 return res.status(401).json({ message: "Unauthorized" });
             }
             //check if token is valid
-            jwt.verify(token, webTokenSecret, (err, decoded) => {
+            jsonwebtoken.verify(token, webTokenSecret, (err, decoded) => {
                 if (err) {
                     return res.status(401).json({ message: "Unauthorized" });
                 }
@@ -45,11 +77,11 @@ export class AuthenticationService {
         }
     }
 
-    loginMiddleware(req, res, next) {
+    async loginMiddleware(req, res, next) {
         const username = req.body.username;
         const password = req.body.password;
         try {
-            const token = this.login(username, password);
+            const token = await login(username, password);
             res.json({ token });
             res.writeHead(200);
             res.end();
@@ -90,38 +122,6 @@ export class AuthenticationService {
             // Handle any errors that occur during registration
             console.error("Error during registration:", error.message);
             throw error;
-        }
-    }
-
-    async login(username, password) {
-        try {
-            //check if user exists in db
-            const user = await database("users").where("username", username).first();
-            if (!user) {
-                // If username exists, return an error or throw an exception
-                throw new Error("Username doesnt exist");
-            }
-            // hash == db password
-
-            bcrypt.compare(password, user.password, function (err, result) {
-                // result == true/false
-                if (err) {
-                    console.log(err);
-                    throw err;
-                }
-                if (!result) {
-                    throw new Error("Password not matching");
-                }
-            });
-
-            //id -> db id
-            const token = jsonwebtoken.sign({ username, password }, webTokenSecret, {
-                expiresIn: "1h",
-            });
-            return token;
-        } catch (err) {
-            console.log("Error during login: ", err);
-            throw err;
         }
     }
 }

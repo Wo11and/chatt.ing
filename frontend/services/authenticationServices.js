@@ -1,23 +1,27 @@
 const frontendAddress = import.meta.env.VITE_FRONTEND_ADDRESS;
 class httpService {
+    header = {
+        "Content-Type": "application/json",
+    };
+
     constructor(url) {
         this.url = url;
     }
 
-    async get(route, headers) {
+    async get(route) {
         const response = await fetch(this.url + route, {
             method: "GET",
-            headers,
+            headers: this.header,
         });
 
         return this.getDataFromResponse(response);
     }
 
-    async post(route, headers, body) {
+    async post(route, body) {
         const response = await fetch(this.url + route, {
             method: "POST",
-            headers,
-            body,
+            headers: this.header,
+            body: JSON.stringify(body),
         });
 
         return this.getDataFromResponse(response);
@@ -33,7 +37,7 @@ class httpService {
     }
 }
 
-class Authentication {
+export class Authentication {
     httpServ = new httpService("http://localhost:3000");
 
     // Get token from local storage, check it and return user info.
@@ -41,9 +45,15 @@ class Authentication {
     async authenticate() {
         try {
             const token = localStorage.getItem("token");
-            const data = await httpServ.get("/", {
+            console.log("in authenticate");
+            const data = await this.httpServ.get("/authencticate", {
                 Authorization: `Bearer ${token}`,
             });
+            console.log(data);
+            if (!data.ok) {
+                throw new Error("AuthError");
+            }
+
             return data;
         } catch (error) {
             console.error("Error:", error);
@@ -51,45 +61,25 @@ class Authentication {
         }
     }
 
-    async login(event) {
-        event.preventDefault();
-
-        const formData = new FormData(event.target);
-        // Make a POST request to the server to register the user
+    async login(username, password) {
+        const user = { username, password };
         try {
-            const data = await httpServ.post(
-                "/login",
-                {
-                    "Content-Type": "application/json",
-                },
-                JSON.stringify(Object.fromEntries(formData))
-            );
-            console.log(data);
+            const data = await this.httpServ.post("/login", user);
             localStorage.setItem("token", data.token);
             console.log("Token stored in local storage:", data.token);
-            window.location.href = `${frontendAddress}/chat.html`;
+            window.location.href = `${frontendAddress}/index.html`;
         } catch (error) {
             console.error("Error:", error);
         }
     }
 
-    async register(event) {
-        event.preventDefault();
-
-        const formData = new FormData(event.target);
-        // Make a POST request to the server to register the user
+    async register(username, password) {
+        const user = { username, password };
         try {
-            const data = await httpServ.post(
-                "/register",
-                {
-                    "Content-Type": "application/json",
-                },
-                JSON.stringify(Object.fromEntries(formData))
-            );
-            console.log(data);
+            const data = await this.httpServ.post("/register", user);
             localStorage.setItem("token", data.token);
             console.log("Token stored in local storage:", data.token);
-            window.location.href = `${frontendAddress}/chat.html`;
+            window.location.href = `${frontendAddress}/index.html`;
         } catch (error) {
             console.error("Error:", error);
         }

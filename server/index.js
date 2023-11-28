@@ -26,6 +26,11 @@ app.post("/register", auth.loginMiddleware);
 //check token fore every http request to the backend below this line
 app.use(auth.checkTokenMiddleware);
 
+app.get("/authencticate", auth.checkTokenMiddleware, (req, res) => {
+    console.log("here");
+    res.status(200).send({ ...req.data });
+});
+
 app.get("/", (req, res) => {
     res.send({ message: "Hello World!" });
 });
@@ -40,7 +45,7 @@ io.on("connection", function (socket) {
     });
 });
 
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`Server listening on port ${port}`);
 });
 
