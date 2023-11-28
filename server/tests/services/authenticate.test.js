@@ -2,29 +2,41 @@ const { describe, expect, test } = require("@jest/globals");
 const { AuthenticationService } = require("../../services/authenticate.js");
 
 const auth = new AuthenticationService();
-const username = "testuser9";
-const notExistingUsername = "not_existing_in_db";
+const username = "testuser14";
+const notExistingUsername = "not_existing_in_db1";
 const validPassword = "testpassword";
 const wrongPassword = "123";
 
 describe("Authentication Module", () => {
     test("Registers new user, adds them to DB", async () => {
-        await expect(auth.register(username, validPassword)).resolves.not.toThrow();
+        const data = await auth.register(username, validPassword);
+        expect(data).not.toBeUndefined();
     });
 
     test("Tries registering existing user", async () => {
-        await expect(auth.register(username, validPassword)).rejects.toThrowError();
+        try {
+            await auth.register(username, validPassword);
+        } catch (e) {
+            expect(e.toString()).toMatch("Error: Username already exists");
+        }
     });
-
     test("Logins existing user", async () => {
-        await expect(auth.login(username, validPassword)).resolves.not.toThrow();
+        const data = await auth.login(username, validPassword);
+        expect(data).not.toBeUndefined();
     });
 
-    test("Login not existing user", async () => {
-        await expect(auth.login(notExistingUsername, wrongPassword)).rejects.toThrowError();
+    test("Tries loging not existing user", async () => {
+        try {
+            await auth.login(notExistingUsername, wrongPassword);
+        } catch (e) {
+            expect(e.toString()).toMatch("Error: Username doesnt exist");
+        }
     });
-
     test("Login existing user with wrong pass", async () => {
-        await expect(auth.login(username, wrongPassword)).rejects.toThrowError();
+        try {
+            await auth.login(username, wrongPassword);
+        } catch (e) {
+            expect(e.toString()).toMatch("Password not matching");
+        }
     });
 });
