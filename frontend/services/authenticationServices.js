@@ -1,41 +1,5 @@
 const frontendAddress = import.meta.env.VITE_FRONTEND_ADDRESS;
-class httpService {
-    header = {
-        "Content-Type": "application/json",
-    };
-
-    constructor(url) {
-        this.url = url;
-    }
-
-    async get(route) {
-        const response = await fetch(this.url + route, {
-            method: "GET",
-            headers: this.header,
-        });
-
-        return this.getDataFromResponse(response);
-    }
-
-    async post(route, body) {
-        const response = await fetch(this.url + route, {
-            method: "POST",
-            headers: this.header,
-            body: JSON.stringify(body),
-        });
-
-        return this.getDataFromResponse(response);
-    }
-
-    async getDataFromResponse(response) {
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data;
-    }
-}
+import { httpService } from "./httpService";
 
 export class Authentication {
     httpServ = new httpService("http://localhost:3000");
@@ -81,7 +45,9 @@ export class Authentication {
         const user = { username, password };
         try {
             const data = await this.httpServ.post("/register", user);
-            console.log(data);
+            if (!data) {
+                return false;
+            }
             localStorage.setItem("token", data.token);
             console.log("Token stored in local storage:", data.token);
             window.location.href = `${frontendAddress}/index.html`;
