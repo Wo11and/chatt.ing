@@ -33,7 +33,7 @@ export class Authentication {
                 return false;
             }
             localStorage.setItem("token", data.token);
-            console.log("Token stored in local storage:", data.token);
+            localStorage.setItem("chatting-user", data.userInfo);
             window.location.href = `${frontendAddress}/index.html`;
         } catch (error) {
             console.error("Error:", error);
@@ -49,7 +49,7 @@ export class Authentication {
                 return false;
             }
             localStorage.setItem("token", data.token);
-            console.log("Token stored in local storage:", data.token);
+            localStorage.setItem("chatting-user", data.userInfo);
             window.location.href = `${frontendAddress}/index.html`;
         } catch (error) {
             console.error("Error:", error);

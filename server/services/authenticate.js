@@ -36,7 +36,8 @@ export class AuthenticationService {
             const token = jsonwebtoken.sign({ username, id: user.id }, webTokenSecret, {
                 expiresIn: "1h",
             });
-            return token;
+            const userInfo = { username: user.username, id: user.id };
+            return { token, userInfo };
         } catch (err) {
             console.log("Error during login: ", err);
             throw err;
@@ -47,7 +48,7 @@ export class AuthenticationService {
         try {
             //connect to db
             await database.raw("SELECT 1");
-            const user = await database("users").where("username", username).first();
+            let user = await database("users").where("username", username).first();
             if (user !== undefined) {
                 // If username exists, return an error or throw an exception
                 throw new Error("Username already exists");
@@ -55,18 +56,22 @@ export class AuthenticationService {
             const hashedPassword = await bcrypt.hash(password, bcrypt_saltRounds);
             // Store hash and username in DB
             //...
-            const [userId] = await database("users").insert(
-                {
-                    username,
-                    password: hashedPassword,
-                },
-                "username"
-            );
-            console.log("Created user: " + userId);
-            const token = jsonwebtoken.sign({ username, password }, webTokenSecret, {
-                expiresIn: "1h",
+            await database("users").insert({
+                username,
+                password: hashedPassword,
             });
-            return token;
+            user = await database("users").where("username", username).first();
+
+            console.log("Created user: " + user.id);
+            const token = jsonwebtoken.sign(
+                { username: user.username, id: user.id },
+                webTokenSecret,
+                {
+                    expiresIn: "1h",
+                }
+            );
+            const userInfo = { username: user.username, id: user.id };
+            return { token, userInfo };
         } catch (error) {
             // Handle any errors that occur during registration
             console.error("Error during registration:", error.message);
@@ -99,8 +104,8 @@ export class AuthenticationService {
         const username = req.body.username;
         const password = req.body.password;
         try {
-            const token = await this.register(username, password);
-            res.status(200).json({ token }).end();
+            const data = await this.register(username, password);
+            res.status(200).json(data).end(); //{token, userInfo}
         } catch (err) {
             console.log(err);
             console.log("cant register");
@@ -112,8 +117,8 @@ export class AuthenticationService {
         const username = req.body.username;
         const password = req.body.password;
         try {
-            const token = await this.login(username, password);
-            res.status(200).json({ token }).end();
+            const data = await this.login(username, password);
+            res.status(200).json(data).end(); //{token, userInfo}
         } catch (err) {
             console.log(err);
             console.log("cant login");
