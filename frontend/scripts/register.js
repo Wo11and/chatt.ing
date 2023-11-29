@@ -4,8 +4,8 @@ const auth = new Authentication();
 async function register(event) {
     event.preventDefault();
     console.log("submitting...");
-    const username = document.getElementById("login__username").value;
-    const password = document.getElementById("login__password").value;
+    const username = document.getElementById("register_username").value;
+    const password = document.getElementById("register_password").value;
     if (!username || !password) {
         //...
     }
