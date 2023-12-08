@@ -26,15 +26,17 @@ export class Authentication {
         const user = { username, password };
         try {
             const data = await this.httpServ.post("/login", user);
-            if (!data) {
-                return false;
+            console.log(data);
+            if (!data || data["login"] == "failed") {
+                document.getElementById("error__div").style.display = "block";
+            } else {
+                localStorage.setItem("token", JSON.stringify(data.token));
+                localStorage.setItem(
+                    "chatting_user",
+                    JSON.stringify(data.userInfo)
+                );
+                window.location.href = `${frontendAddress}/index.html`;
             }
-            localStorage.setItem("token", JSON.stringify(data.token));
-            localStorage.setItem(
-                "chatting_user",
-                JSON.stringify(data.userInfo)
-            );
-            window.location.href = `${frontendAddress}/index.html`;
         } catch (error) {
             console.error("Error:", error);
             return false;
@@ -45,15 +47,16 @@ export class Authentication {
         const user = { username, password };
         try {
             const data = await this.httpServ.post("/register", user);
-            if (!data) {
-                return false;
+            if (!data || data["register"] == "failed") {
+                document.getElementById("error__div").style.display = "block";
+            } else {
+                localStorage.setItem("token", JSON.stringify(data.token));
+                localStorage.setItem(
+                    "chatting_user",
+                    JSON.stringify(data.userInfo)
+                );
+                window.location.href = `${frontendAddress}/index.html`;
             }
-            localStorage.setItem("token", data.token);
-            localStorage.setItem(
-                "chatting_user",
-                JSON.stringify(data.userInfo)
-            );
-            window.location.href = `${frontendAddress}/index.html`;
         } catch (error) {
             console.error("Error:", error);
         }
