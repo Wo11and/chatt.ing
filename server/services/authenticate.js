@@ -36,7 +36,7 @@ export class AuthenticationService {
             const token = jsonwebtoken.sign({ username, id: user.id }, webTokenSecret, {
                 expiresIn: "1h",
             });
-            const userInfo = { username: user.username, id: user.id };
+            const userInfo = { name: user.username, id: user.id };
             return { token, userInfo };
         } catch (err) {
             console.log("Error during login: ", err);
@@ -70,7 +70,7 @@ export class AuthenticationService {
                     expiresIn: "1h",
                 }
             );
-            const userInfo = { username: user.username, id: user.id };
+            const userInfo = { name: user.username, id: user.id };
             return { token, userInfo };
         } catch (error) {
             // Handle any errors that occur during registration
