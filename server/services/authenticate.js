@@ -128,9 +128,12 @@ export class AuthenticationService {
             const data = await this.register(username, password);
             res.status(200).json(data).end(); //{token, userInfo}
         } catch (err) {
-            console.log(err);
-            console.log("cant register");
-            res.status(400).json({ undefined }).end();
+            if (err.message == "Username already exists") {
+                res.status(200).json({ register: "failed" }).end();
+            } else {
+                console.log("Cant register:", err.message);
+                res.status(400).json({ undefined }).end();
+            }
         }
     };
 
@@ -141,10 +144,16 @@ export class AuthenticationService {
             const data = await this.login(username, password);
             res.status(200).json(data).end(); //{token, userInfo}
         } catch (err) {
-            console.log(err);
-            console.log("cant login");
-            res.status(400).json({ undefined }).end();
-            return;
+            if (
+                err.message == "Password not matching" ||
+                err.message == "Username doesnt exist"
+            ) {
+                res.status(200).json({ login: "failed" }).end();
+            } else {
+                console.log("Cant login:", err.message);
+                res.status(400).json({ undefined }).end();
+                return;
+            }
         }
     };
 }
