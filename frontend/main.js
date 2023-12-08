@@ -7,8 +7,8 @@ const auth = new Authentication();
 try {
     const data = await auth.authenticate();
     console.log(data);
-    socket.auth = { token: data.token };
-    socket.connect();
+    // socket.auth = { token: data.token };
+    // socket.connect();
 } catch (err) {
     console.log(err);
     window.location.href = `${frontendAddress}/login.html`;
