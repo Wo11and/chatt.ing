@@ -16,6 +16,15 @@ export class httpService {
         return this.getDataFromResponse(response);
     }
 
+    async getWithHeader(route, header) {
+        const response = await fetch(this.url + route, {
+            method: "GET",
+            headers: header,
+        });
+
+        return this.getDataFromResponse(response);
+    }
+
     async post(route, body) {
         const response = await fetch(this.url + route, {
             method: "POST",

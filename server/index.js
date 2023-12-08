@@ -25,10 +25,9 @@ app.post("/login", auth.loginMiddleware);
 app.post("/register", auth.registerMiddleware);
 
 //check token fore every http request to the backend below this line
-app.use(auth.checkTokenMiddleware);
+// app.use(auth.checkTokenMiddleware);
 
 app.get("/authencticate", auth.checkTokenMiddleware, (req, res) => {
-    console.log("here");
     res.status(200).send({ ...req.data });
 });
 

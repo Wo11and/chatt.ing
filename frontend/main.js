@@ -2,14 +2,14 @@ import { Authentication } from "./services/authenticationServices.js";
 import "./sockets.js";
 const frontendAddress = import.meta.env.VITE_FRONTEND_ADDRESS;
 
-const token = localStorage.getItem("token");
 const auth = new Authentication();
 
 try {
-    await auth.authenticate();
+    const data = await auth.authenticate();
+    console.log(data);
+    socket.auth = { token: data.token };
+    socket.connect();
 } catch (err) {
-    //console.log(err);
-    window.location.href = `${frontendAddress}/register.html`;
+    console.log(err);
+    window.location.href = `${frontendAddress}/login.html`;
 }
-// socket.auth = { token };
-// socket.connect();

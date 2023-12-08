@@ -9,18 +9,15 @@ export class Authentication {
     async authenticate() {
         try {
             const token = localStorage.getItem("token");
-            console.log("in authenticate");
-            const data = await this.httpServ.get("/authencticate", {
+            const data = await this.httpServ.getWithHeader("/authencticate", {
                 Authorization: `Bearer ${token}`,
             });
-            console.log(data);
-            if (!data.ok) {
-                throw new Error("AuthError");
+            if (!data) {
+                throw new Error("AuthError: data not ok:", data);
             }
-
             return data;
         } catch (error) {
-            console.error("Error:", error);
+            console.error("Error in authenticating:", error);
             throw error;
         }
     }
@@ -32,8 +29,11 @@ export class Authentication {
             if (!data) {
                 return false;
             }
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("chatting_user", JSON.stringify(data.userInfo));
+            localStorage.setItem("token", JSON.stringify(data.token));
+            localStorage.setItem(
+                "chatting_user",
+                JSON.stringify(data.userInfo)
+            );
             window.location.href = `${frontendAddress}/index.html`;
         } catch (error) {
             console.error("Error:", error);
@@ -49,7 +49,10 @@ export class Authentication {
                 return false;
             }
             localStorage.setItem("token", data.token);
-            localStorage.setItem("chatting_user", JSON.stringify(data.userInfo));
+            localStorage.setItem(
+                "chatting_user",
+                JSON.stringify(data.userInfo)
+            );
             window.location.href = `${frontendAddress}/index.html`;
         } catch (error) {
             console.error("Error:", error);

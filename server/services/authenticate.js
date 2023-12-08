@@ -10,7 +10,9 @@ export class AuthenticationService {
     async login(username, password) {
         try {
             //check if user exists in db
-            const user = await database("users").where("username", username).first();
+            const user = await database("users")
+                .where("username", username)
+                .first();
             if (!user) {
                 // If username exists, return an error or throw an exception
                 throw new Error("Username doesnt exist");
@@ -33,9 +35,13 @@ export class AuthenticationService {
             }
 
             //id -> db id
-            const token = jsonwebtoken.sign({ username, id: user.id }, webTokenSecret, {
-                expiresIn: "1h",
-            });
+            const token = jsonwebtoken.sign(
+                { username, id: user.id },
+                webTokenSecret,
+                {
+                    expiresIn: "1h",
+                }
+            );
             const userInfo = { name: user.username, id: user.id };
             return { token, userInfo };
         } catch (err) {
@@ -48,12 +54,17 @@ export class AuthenticationService {
         try {
             //connect to db
             await database.raw("SELECT 1");
-            let user = await database("users").where("username", username).first();
+            let user = await database("users")
+                .where("username", username)
+                .first();
             if (user !== undefined) {
                 // If username exists, return an error or throw an exception
                 throw new Error("Username already exists");
             }
-            const hashedPassword = await bcrypt.hash(password, bcrypt_saltRounds);
+            const hashedPassword = await bcrypt.hash(
+                password,
+                bcrypt_saltRounds
+            );
             // Store hash and username in DB
             //...
             await database("users").insert({
@@ -80,24 +91,34 @@ export class AuthenticationService {
     }
 
     checkTokenMiddleware = (req, res, next) => {
-        const header = req.headers["Authorization"];
+        const header = req.headers["authorization"];
+        let token = undefined;
         if (header) {
             const bearer = header.split(" ");
-            const token = bearer[1];
+            token = bearer[1];
             if (!token) {
-                return res.status(401).json({ message: "Unauthorized" });
+                return res
+                    .status(401)
+                    .json({ message: "Unauthorized: token is undefined" })
+                    .end();
             }
-            //check if token is valid
+            token = token.slice(1, -1);
             jsonwebtoken.verify(token, webTokenSecret, (err, decoded) => {
                 if (err) {
-                    return res.status(401).json({ message: "Unauthorized" });
+                    console.log(err);
+                    return res
+                        .status(401)
+                        .json({ message: "Unauthorized: token not valid" })
+                        .end();
                 }
-                req.token = token;
-                req.userData = decoded;
-                next();
+                req.data = {};
+                req.data.token = token;
+                req.data.userData = decoded;
+                return next();
             });
+        } else {
+            return res.status(401).json({ message: "Unauthorized" }).end();
         }
-        return res.status(401).json({ message: "Unauthorized" });
     };
 
     registerMiddleware = async (req, res, next) => {
