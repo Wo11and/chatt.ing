@@ -3,11 +3,13 @@ const auth = new Authentication();
 
 async function login(event) {
     event.preventDefault();
-    console.log("submitting...");
+    document.getElementById("error__div").style.display = "none";
+    document.getElementById("enter_both").style.display = "none";
     const username = document.getElementById("login__username").value;
     const password = document.getElementById("login__password").value;
     if (!username || !password) {
-        //...
+        document.getElementById("enter_both").style.display = "block";
+        return;
     }
     const result = await auth.login(username, password);
     if (!result) {

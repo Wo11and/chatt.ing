@@ -11,7 +11,15 @@
 		<div class="grid">
 	  
 		  <form action="http://localhost:3000/login" method="POST" class="form login" id="registrationForm">
-	  
+			
+			<div class="error_div" id="error__div">
+				<p>Username and Password combination doesn't exist!</p>
+			</div>
+
+			<div id="enter_both">
+				<p>Please enter both username and password!</p>
+			</div>
+
 			<div class="form__field">
 			  <label for="login__username"><svg class="icon"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#user"></use></svg><span class="hidden">Username</span></label>
 			  <input id="login__username" type="text" name="username" class="form__input" placeholder="Username" required>

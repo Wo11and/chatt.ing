@@ -3,11 +3,13 @@ const auth = new Authentication();
 
 async function register(event) {
     event.preventDefault();
-    console.log("submitting register event...");
+    document.getElementById("error__div").style.display = "none";
+    document.getElementById("enter_both").style.display = "none";
     const username = document.getElementById("register__username").value;
     const password = document.getElementById("register__password").value;
     if (!username || !password) {
-        //...
+        document.getElementById("enter_both").style.display = "block";
+        return;
     }
     const result = await auth.register(username, password);
     if (!result) {
@@ -16,4 +18,6 @@ async function register(event) {
     }
 }
 
-document.getElementById("registrationForm").addEventListener("submit", register);
+document
+    .getElementById("registrationForm")
+    .addEventListener("submit", register);
