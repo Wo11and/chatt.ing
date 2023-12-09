@@ -27,7 +27,7 @@ sendButton.addEventListener("click", (e) => {
     }
 
     const message = {
-        from: { username: tempAuth.name, id: tempAuth.id }, // TODO: Add token
+        from: { username: credentials.name, id: credentials.id }, // TODO: Add token
         to: { username: reciever.username, id: reciever.id },
         content: currentMessage,
         createdAt: new Date(),
@@ -38,9 +38,9 @@ sendButton.addEventListener("click", (e) => {
     displayMessage(message, { incoming: false });
 });
 
-const tempAuth = JSON.parse(new localStorageSevice("chatting_user").get());
+const credentials = JSON.parse(new localStorageSevice("chatting_user").get());
 
-socket.auth = { name: tempAuth.name, id: tempAuth.id };
+socket.auth = { name: credentials.name, id: credentials.id };
 socket.connect();
 
 // logging every event sent to socket for debugging purposes
@@ -52,7 +52,7 @@ socket.on("users", (users) => {
     activeUsersColumn.innerHTML = "";
 
     users.forEach((user) => {
-        if (user.userId === tempAuth.id) {
+        if (user.userId === credentials.id) {
             return;
         }
 
@@ -69,7 +69,7 @@ socket.on("users", (users) => {
             chatInfo.innerHTML = "";
             chatInfo.textContent = `Chat with ${username}`;
 
-            socket.emit("get chat", id, tempAuth.id);
+            socket.emit("get chat", id, credentials.id);
         });
 
         activeUsersColumn.appendChild(clone);
@@ -85,7 +85,9 @@ socket.on("private message", (message) => {
 socket.on("get chat", (messages) => {
     chatCanvas.innerHTML = "";
     for (let i = messages.length - 1; i >= 0; i--) {
-        displayMessage(messages[i], { incoming: messages[i].to.id === tempAuth.id });
+        displayMessage(messages[i], {
+            incoming: messages[i].to.id === credentials.id,
+        });
     }
 });
 // socket.on("connect_error", (err) => {
