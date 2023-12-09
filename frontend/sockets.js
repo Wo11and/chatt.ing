@@ -11,6 +11,13 @@ const messageTemplate = document.querySelector("#messageTemplate");
 
 let reciever = undefined;
 
+const credentials = JSON.parse(new localStorageSevice("chatting_user").get());
+const token = JSON.parse(new localStorageSevice("token").get());
+
+if (!credentials) {
+    window.location.href = `/login.html`;
+}
+
 const socket = io(import.meta.env.VITE_SERVER_ADRESS, {
     autoConnect: false,
 });
@@ -31,6 +38,7 @@ sendButton.addEventListener("click", (e) => {
         to: { username: reciever.username, id: reciever.id },
         content: currentMessage,
         createdAt: new Date(),
+        token,
     };
 
     console.log(message);
@@ -38,9 +46,7 @@ sendButton.addEventListener("click", (e) => {
     displayMessage(message, { incoming: false });
 });
 
-const credentials = JSON.parse(new localStorageSevice("chatting_user").get());
-
-socket.auth = { name: credentials.name, id: credentials.id };
+socket.auth = { name: credentials.name, id: credentials.id, token };
 socket.connect();
 
 // logging every event sent to socket for debugging purposes

@@ -5,6 +5,7 @@ import { createServer } from "node:http";
 import "dotenv/config";
 import { AuthenticationService } from "./services/authenticate.js";
 import { messageService } from "./services/MessageService.js";
+import { TokenService } from "./services/TokenService.js";
 
 const app = express();
 app.use(cors());
@@ -17,6 +18,7 @@ const io = new Server(server, {
 
 const port = process.env.SERVER_PORT;
 const auth = new AuthenticationService();
+const tokenService = new TokenService();
 
 app.use(express.json());
 
@@ -88,9 +90,21 @@ io.on("connection", (socket) => {
 
         const socketId = user.socketId;
 
-        messageService.save(message);
+        const { token, ...messageWithoutToken } = message;
 
-        socket.to(socketId).emit("private message", message);
+        const decodedToekn = tokenService.verify(token);
+
+        if (
+            !decodedToekn ||
+            decodedToekn.username != message.from.username ||
+            decodedToekn.id != message.from.id
+        ) {
+            console.error("Unauthorized", decodedToekn, message.to);
+            return;
+        }
+        messageService.save(messageWithoutToken);
+
+        socket.to(socketId).emit("private message", messageWithoutToken);
     });
 
     socket.on("get chat", async (id1, id2) => {
