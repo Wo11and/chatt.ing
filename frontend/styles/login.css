@@ -29,6 +29,27 @@
   }
   
   /* helpers/hidden.css */
+
+  .error_div{
+    display: none;
+  }  
+
+  .error_div p {
+    font-size: large;
+    text-shadow: 1px 1px 2px black;
+    text-align: center;
+    color: #7676a7;
+  }
+
+  #enter_both {
+    display:none;
+  }
+  #enter_both p{
+    font-size: large;
+    text-shadow: 1px 1px 2px black;
+    text-align: center;
+    color: #7676a7;
+  }
   
   .hidden {
     border: 0;

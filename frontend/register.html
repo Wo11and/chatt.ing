@@ -14,19 +14,27 @@
 
         <form action="http://localhost:3000/register" method="POST" class="form login" id="registrationForm">
 
+            <div class="error_div" id="error__div">
+                <p>Username already registered! Try <a href="login.html">logging in</a>!</p>
+            </div>
+
+            <div id="enter_both">
+                <p>Please enter both username and password!</p>
+            </div>
+
             <div class="form__field">
-                <label for="register_username"><svg class="icon">
+                <label for="register__username"><svg class="icon">
                         <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#user"></use>
                     </svg><span class="hidden">Username</span></label>
-                <input id="register_username" type="text" name="username" class="form__input" placeholder="Username"
+                <input id="register__username" type="text" name="username" class="form__input" placeholder="Username"
                     required>
             </div>
 
             <div class="form__field">
-                <label for="register_password"><svg class="icon">
+                <label for="register__password"><svg class="icon">
                         <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#lock"></use>
                     </svg><span class="hidden">Password</span></label>
-                <input id="register_password" type="password" name="password" class="form__input" placeholder="Password"
+                <input id="register__password" type="password" name="password" class="form__input" placeholder="Password"
                     required>
             </div>
 
@@ -36,7 +44,7 @@
 
         </form>
 
-        <p class="text--center">Not a member? <a href="#">Sign up now</a> <svg class="icon">
+        <p class="text--center">Already have an account? <a href="login.html">Log in</a> <svg class="icon">
                 <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="assets/images/icons.svg#arrow-right"></use>
             </svg></p>
 
@@ -58,28 +66,6 @@
     </svg>
 
 </body>
-<script>
-    document.getElementById('registrationForm').addEventListener('submit', function (event) {
-        event.preventDefault();
-
-        const formData = new FormData(event.target);
-        // Make a POST request to the server to register the user
-        fetch('http://localhost:3000/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(Object.fromEntries(formData)),
-        })
-            .then(response => response.json())
-            .then(data => {
-                // Store the token in local storage
-                localStorage.setItem('token', data.token);
-                console.log('Token stored in local storage:', data.token);
-                window.location.href = 'http://localhost:3000/chat.html';
-            })
-            .catch(error => console.error('Error:', error));
-    });
-</script>
+<script src="scripts/register.js" type="module"></script>
 
 </html>

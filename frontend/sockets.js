@@ -12,30 +12,30 @@ const messageTemplate = document.querySelector("#messageTemplate");
 let reciever = undefined;
 
 const socket = io(import.meta.env.VITE_SERVER_ADRESS, {
-	autoConnect: false,
+    autoConnect: false,
 });
 
 sendButton.addEventListener("click", (e) => {
-	e.preventDefault();
-	if (!reciever) {
-		return;
-	}
+    e.preventDefault();
+    if (!reciever) {
+        return;
+    }
 
-	const currentMessage = messageBox.value;
-	if (!currentMessage) {
-		return;
-	}
+    const currentMessage = messageBox.value;
+    if (!currentMessage) {
+        return;
+    }
 
-	const message = {
-		from: { username: tempAuth.name, id: tempAuth.id }, // TODO: Add token
-		to: { username: reciever.username, id: reciever.id },
-		content: currentMessage,
-		createdAt: new Date(),
-	};
+    const message = {
+        from: { username: tempAuth.name, id: tempAuth.id }, // TODO: Add token
+        to: { username: reciever.username, id: reciever.id },
+        content: currentMessage,
+        createdAt: new Date(),
+    };
 
-	console.log(message);
-	socket.emit("private message", message);
-	displayMessage(message, {incoming:false});
+    console.log(message);
+    socket.emit("private message", message);
+    displayMessage(message, { incoming: false });
 });
 
 const tempAuth = JSON.parse(new localStorageSevice("chatting_user").get());
@@ -45,48 +45,48 @@ socket.connect();
 
 // logging every event sent to socket for debugging purposes
 socket.onAny((event, ...args) => {
-	console.log(event, args);
+    console.log(event, args);
 });
 
 socket.on("users", (users) => {
-	activeUsersColumn.innerHTML = "";
+    activeUsersColumn.innerHTML = "";
 
-	users.forEach((user) => {
-		if (user.userId === tempAuth.id) {
-			return;
-		}
+    users.forEach((user) => {
+        if (user.userId === tempAuth.id) {
+            return;
+        }
 
-		const clone = userCardTemplate.content.cloneNode(true);
-		let cardContent = clone.querySelectorAll("span");
-		cardContent[0].textContent = user.username;
-		console.log(clone);
+        const clone = userCardTemplate.content.cloneNode(true);
+        let cardContent = clone.querySelectorAll("span");
+        cardContent[0].textContent = user.username;
+        console.log(clone);
 
-		const cardWrapper = clone.querySelector("div");
-		cardWrapper.addEventListener("click", () => {
-			const id = user.userId;
-			const username = user.username;
-			reciever = { id, username };
-			chatInfo.innerHTML = "";
-			chatInfo.textContent = `Chat with ${username}`;
+        const cardWrapper = clone.querySelector("div");
+        cardWrapper.addEventListener("click", () => {
+            const id = user.userId;
+            const username = user.username;
+            reciever = { id, username };
+            chatInfo.innerHTML = "";
+            chatInfo.textContent = `Chat with ${username}`;
 
-			socket.emit("get chat", id, tempAuth.id);
-		});
+            socket.emit("get chat", id, tempAuth.id);
+        });
 
-		activeUsersColumn.appendChild(clone);
-	});
+        activeUsersColumn.appendChild(clone);
+    });
 });
 
 socket.on("private message", (message) => {
-	if (reciever && message.from.id === reciever.id) {
-		displayMessage(message, {incoming:true});
-	}
+    if (reciever && message.from.id === reciever.id) {
+        displayMessage(message, { incoming: true });
+    }
 });
 
 socket.on("get chat", (messages) => {
-	chatCanvas.innerHTML = "";
-	for (let i = messages.length - 1; i >= 0; i--) {
-		displayMessage(messages[i], {incoming:messages[i].to.id === tempAuth.id});
-	}
+    chatCanvas.innerHTML = "";
+    for (let i = messages.length - 1; i >= 0; i--) {
+        displayMessage(messages[i], { incoming: messages[i].to.id === tempAuth.id });
+    }
 });
 // socket.on("connect_error", (err) => {
 //     if (err.message === "invalid credetials") {
@@ -95,9 +95,9 @@ socket.on("get chat", (messages) => {
 //   });
 
 function displayMessage(message, options) {
-	const clone = messageTemplate.content.cloneNode(true);
-	let cardContent = clone.querySelector(".message");
-	cardContent.classList.add(options.incoming ? "incoming" : "outgoing");
-	cardContent.textContent = message.content;
-	chatCanvas.appendChild(clone);
+    const clone = messageTemplate.content.cloneNode(true);
+    let cardContent = clone.querySelector(".message");
+    cardContent.classList.add(options.incoming ? "incoming" : "outgoing");
+    cardContent.textContent = message.content;
+    chatCanvas.appendChild(clone);
 }
