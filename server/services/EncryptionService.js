@@ -2,8 +2,16 @@ import { mongoDbClient } from "../mongodbconfig.js";
 import { database } from "../knexconfig.js";
 
 export class EncryptionService {
-    getPublicKey = async (username) => {};
-    setPublicKey = async (username, newPublicKey) => {};
+    messages = mongoDbClient.db("chatting").collection("messages");
+    getPublicKey = async (username) => {
+        user = await database("users").where("username", username).first();
+        return user.publicKey;
+    };
+    setPublicKey = async (username, newPublicKey) => {
+        return await database("users").where("username", username).update({
+            publicKey: newPublicKey,
+        });
+    };
 
     getPrivateKey = async (username) => {
         user = await database("users").where("username", username).first();
