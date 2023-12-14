@@ -1,8 +1,6 @@
-import { mongoDbClient } from "../mongodbconfig.js";
 import { database } from "../knexconfig.js";
 
 export class EncryptionService {
-    messages = mongoDbClient.db("chatting").collection("messages");
     getPublicKey = async (username) => {
         user = await database("users").where("username", username).first();
         return user.publicKey;
@@ -36,7 +34,27 @@ export class EncryptionService {
         );
     };
 
-    encrypt = async (message, to) => {};
+    encrypt = async (message, publicKey) => {
+        const encoder = new TextEncoder();
+        const encodedMessage = encoder.encode(message);
 
-    decrypt = async (encryptedMessage) => {};
+        const encryptedMessage = await crypto.subtle.encrypt(
+            { name: "RSA-OAEP" },
+            publicKey,
+            encodedMessage
+        );
+
+        return new Uint8Array(encryptedMessage);
+    };
+
+    decrypt = async (encryptedMessage, privateKey) => {
+        const decoder = new TextDecoder();
+
+        const decryptedMessage = await crypto.subtle.decrypt(
+            { name: "RSA-OAEP" },
+            privateKey,
+            encryptedMessage
+        );
+        return decoder.decode(decryptedMessage);
+    };
 }
