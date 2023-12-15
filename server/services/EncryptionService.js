@@ -1,6 +1,5 @@
 import { database } from "../knexconfig.js";
 import "dotenv/config";
-import { messageService } from "./MessageService.js";
 
 const serverPrivateKey = process.env.ENCRYPTION_PRIVATE_KEY;
 const serverPublicKey = process.env.ENCRYPTION_PUBLIC_KEY;
@@ -82,6 +81,7 @@ export class EncryptionService {
     //     content: currentMessage,
     //     createdAt: new Date(),
     // };
+
     doubleEncrypt = async (messageObject) => {
         const toUsername = messageObject.to.username;
         const message = messageObject.content;
