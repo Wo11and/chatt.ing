@@ -1,4 +1,9 @@
 import { database } from "../knexconfig.js";
+import "dotenv/config";
+import { messageService } from "./MessageService.js";
+
+const serverPrivateKey = process.env.ENCRYPTION_PRIVATE_KEY;
+const serverPublicKey = process.env.ENCRYPTION_PUBLIC_KEY;
 
 export class EncryptionService {
     getPublicKey = async (username) => {
@@ -56,5 +61,57 @@ export class EncryptionService {
             encryptedMessage
         );
         return decoder.decode(decryptedMessage);
+    };
+
+    decryptServer = async (messageObject) => {
+        const firstDecrypt = await this.decrypt(
+            messageObject.content,
+            serverPrivateKey
+        );
+        return {
+            from: messageObject.from,
+            to: messageObject.to,
+            content: firstDecrypt,
+            createdAt: messageObject.createdAt,
+        };
+    };
+
+    // const message = {
+    //     from: { username: credentials.name, id: credentials.id }, // TODO: Add token
+    //     to: { username: reciever.username, id: reciever.id },
+    //     content: currentMessage,
+    //     createdAt: new Date(),
+    // };
+    doubleEncrypt = async (messageObject) => {
+        const toUsername = messageObject.to.username;
+        const message = messageObject.content;
+        const firstEncrypt = await this.encrypt(
+            message,
+            this.getPublicKey(toUsername)
+        );
+        const secondEncrypt = await this.encrypt(firstEncrypt, serverPublicKey);
+        return {
+            from: messageObject.from,
+            to: messageObject.to,
+            content: secondEncrypt,
+            createdAt: messageObject.createdAt,
+        };
+    };
+
+    doubleDecrypt = async (messageObject) => {
+        const firstDecrypt = await this.decrypt(
+            messageObject.content,
+            serverPrivateKey
+        );
+        const message = await this.decrypt(
+            firstDecrypt,
+            this.getPrivateKey(messageObject.to.username)
+        );
+        return {
+            from: messageObject.from,
+            to: messageObject.to,
+            content: message,
+            createdAt: messageObject.createdAt,
+        };
     };
 }
