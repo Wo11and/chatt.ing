@@ -10,6 +10,7 @@ const chatCanvas = document.querySelector("#chatCanvas");
 const messageTemplate = document.querySelector("#messageTemplate");
 
 let reciever = undefined;
+let currentPage = undefined;
 
 const credentials = JSON.parse(new localStorageSevice("chatting_user").get());
 const token = JSON.parse(new localStorageSevice("token").get());
@@ -43,7 +44,7 @@ sendButton.addEventListener("click", (e) => {
 
     console.log(message);
     socket.emit("private message", message);
-    displayMessage(message, { incoming: false });
+    displayMessage(message, { incoming: false, bottom: true });
 });
 
 socket.auth = { name: credentials.name, id: credentials.id, token };
@@ -69,13 +70,29 @@ socket.on("users", (users) => {
 
         const cardWrapper = clone.querySelector("div");
         cardWrapper.addEventListener("click", () => {
+            currentPage = 1;
             const id = user.userId;
             const username = user.username;
             reciever = { id, username };
+
+            const chatInfo = [id, credentials.id, token];
+
             chatInfo.innerHTML = "";
             chatInfo.textContent = `Chat with ${username}`;
 
-            socket.emit("get chat", id, credentials.id);
+            chatCanvas.innerHTML = "";
+            const getMoreMessagesButton = document.createElement("button");
+            getMoreMessagesButton.type = "button";
+            getMoreMessagesButton.className = "getMoreMessagesButton";
+            getMoreMessagesButton.textContent = "Load more messages";
+            getMoreMessagesButton.addEventListener("click", () => {
+                socket.emit("get chat", ...chatInfo, currentPage++);
+            });
+
+            chatCanvas.appendChild(getMoreMessagesButton);
+
+            socket.emit("get chat", ...chatInfo, currentPage++);
+            console.log(chatInfo);
         });
 
         activeUsersColumn.appendChild(clone);
@@ -84,17 +101,17 @@ socket.on("users", (users) => {
 
 socket.on("private message", (message) => {
     if (reciever && message.from.id === reciever.id) {
-        displayMessage(message, { incoming: true });
+        displayMessage(message, { incoming: true, bottom: true });
     }
 });
 
 socket.on("get chat", (messages) => {
-    chatCanvas.innerHTML = "";
-    for (let i = messages.length - 1; i >= 0; i--) {
-        displayMessage(messages[i], {
-            incoming: messages[i].to.id === credentials.id,
+    messages.forEach((message) => {
+        displayMessage(message, {
+            incoming: message.to.id === credentials.id,
+            bottom: false,
         });
-    }
+    });
 });
 // socket.on("connect_error", (err) => {
 //     if (err.message === "invalid credetials") {
@@ -107,5 +124,11 @@ function displayMessage(message, options) {
     let cardContent = clone.querySelector(".message");
     cardContent.classList.add(options.incoming ? "incoming" : "outgoing");
     cardContent.textContent = message.content;
-    chatCanvas.appendChild(clone);
+    const getMoreMessagesButton = document.getElementsByClassName(
+        "getMoreMessagesButton"
+    )[0];
+
+    options.bottom
+        ? chatCanvas.appendChild(clone)
+        : getMoreMessagesButton.after(clone);
 }
