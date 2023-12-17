@@ -1,4 +1,5 @@
 import { io } from "socket.io-client";
+import base64 from "base-64";
 import { localStorageSevice } from "./services/LocalStorageSevice";
 
 const activeUsersColumn = document.getElementById("activeUsers");
@@ -8,6 +9,7 @@ const sendButton = document.querySelector("#sendButton");
 const messageBox = document.querySelector("#messageBox");
 const chatCanvas = document.querySelector("#chatCanvas");
 const messageTemplate = document.querySelector("#messageTemplate");
+const addButton = document.querySelector("#plus");
 
 let reciever = undefined;
 let currentPage = undefined;
@@ -30,21 +32,48 @@ sendButton.addEventListener("click", (e) => {
     }
 
     const currentMessage = messageBox.value;
-    if (!currentMessage) {
+    if (!currentMessage && !file) {
         return;
     }
 
-    const message = {
-        from: { username: credentials.name, id: credentials.id }, // TODO: Add token
-        to: { username: reciever.username, id: reciever.id },
-        content: currentMessage,
-        createdAt: new Date(),
-        token,
-    };
+    if (currentMessage) {
+        const message = {
+            from: { username: credentials.name, id: credentials.id }, // TODO: Add token
+            to: { username: reciever.username, id: reciever.id },
+            content: currentMessage,
+            createdAt: new Date(),
+            token,
+        };
+        socket.emit("new private message", message);
 
-    console.log(message);
-    socket.emit("private message", message);
-    displayMessage(message, { incoming: false, bottom: true });
+        displayMessage(message, { incoming: false, bottom: true });
+    }
+
+    if (file) {
+        // console.log(file);
+        const reader = new FileReader();
+        let encodedPicture;
+        reader.onload = function () {
+            encodedPicture = reader.result
+                .replace("data:", "")
+                .replace(/^.+,/, "");
+
+            const pictureMessage = {
+                from: { username: credentials.name, id: credentials.id }, // TODO: Add token
+                to: { username: reciever.username, id: reciever.id },
+                content: encodedPicture,
+                type: "picture",
+                createdAt: new Date(),
+                token,
+            };
+            console.log(pictureMessage);
+            socket.emit("new private message", pictureMessage);
+            displayMessage(pictureMessage, { incoming: false, bottom: true });
+            file = undefined;
+        };
+
+        reader.readAsDataURL(file);
+    }
 });
 
 socket.auth = { name: credentials.name, id: credentials.id, token };
@@ -119,10 +148,15 @@ socket.on("get chat", (messages) => {
 //   });
 
 function displayMessage(message, options) {
+    console.log(message);
     const clone = messageTemplate.content.cloneNode(true);
     let cardContent = clone.querySelector(".message");
     cardContent.classList.add(options.incoming ? "incoming" : "outgoing");
-    cardContent.textContent = message.content;
+    cardContent.innerHTML =
+        message.type === "picture"
+            ? `<img src="data:image/png;base64,${message.content}" />`
+            : `<span>${message.content}</span>`;
+
     const getMoreMessagesButton = document.getElementsByClassName(
         "getMoreMessagesButton"
     )[0];
@@ -131,3 +165,9 @@ function displayMessage(message, options) {
         ? chatCanvas.appendChild(clone)
         : getMoreMessagesButton.after(clone);
 }
+
+let file = undefined;
+
+addButton.addEventListener("change", (e) => {
+    file = e.target.files[0];
+});
