@@ -75,7 +75,7 @@ socket.on("users", (users) => {
             const username = user.username;
             reciever = { id, username };
 
-            const chatInfo = [id, credentials.id, token];
+            const chatData = [id, credentials.id, token];
 
             chatInfo.innerHTML = "";
             chatInfo.textContent = `Chat with ${username}`;
@@ -86,13 +86,12 @@ socket.on("users", (users) => {
             getMoreMessagesButton.className = "getMoreMessagesButton";
             getMoreMessagesButton.textContent = "Load more messages";
             getMoreMessagesButton.addEventListener("click", () => {
-                socket.emit("get chat", ...chatInfo, currentPage++);
+                socket.emit("get chat", ...chatData, currentPage++);
             });
 
             chatCanvas.appendChild(getMoreMessagesButton);
 
-            socket.emit("get chat", ...chatInfo, currentPage++);
-            console.log(chatInfo);
+            socket.emit("get chat", ...chatData, currentPage++);
         });
 
         activeUsersColumn.appendChild(clone);
