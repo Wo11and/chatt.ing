@@ -92,14 +92,19 @@ io.on("connection", (socket) => {
 
         const { token, ...messageWithoutToken } = message;
 
-        const decodedToekn = tokenService.verify(token);
+        let decodedToken;
+        try {
+            decodedToken = tokenService.verify(token);
+        } catch (error) {
+            return socket.emit("unauthorized");
+        }
 
         if (
-            !decodedToekn ||
-            decodedToekn.username != message.from.username ||
-            decodedToekn.id != message.from.id
+            !decodedToken ||
+            decodedToken.username != message.from.username ||
+            decodedToken.id != message.from.id
         ) {
-            console.error("Unauthorized", decodedToekn, message.to);
+            console.error("Unauthorized", decodedToken, message.to);
             return;
         }
         messageService.save(messageWithoutToken);
@@ -107,8 +112,21 @@ io.on("connection", (socket) => {
         socket.to(socketId).emit("private message", messageWithoutToken);
     });
 
-    socket.on("get chat", async (id1, id2) => {
-        const result = await messageService.getConversation(id1, id2);
+    socket.on("get chat", async (id1, id2, token, page) => {
+        let verifiedToken;
+        try {
+            verifiedToken = tokenService.verify(token);
+        } catch (error) {
+            console.error(error);
+            return socket.emit("unauthorized");
+        }
+
+        if (verifiedToken.id !== id2) {
+            console.log(verifiedToken);
+            return socket.emit("unauthorized");
+        }
+
+        const result = await messageService.getConversation(id1, id2, page);
         socket.emit("get chat", result);
     });
 });
