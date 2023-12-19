@@ -57,8 +57,9 @@ export class AuthenticationService {
         try {
             //connect to db
             await database.raw("SELECT 1");
-            const user = this.usersDB.getUser(username);
+            let user = await this.usersDB.getUser(username);
             if (user !== undefined) {
+                console.log(user);
                 // If username exists, return an error or throw an exception
                 throw new Error("Username already exists");
             }
@@ -68,12 +69,16 @@ export class AuthenticationService {
             );
 
             const userKeys = await this.encryptServ.generateKeys();
+            const publicKeyBase64 =
+                await this.encryptServ.convertToBase64PublicKey(userKeys);
+            const privateKeyBase64 =
+                await this.encryptServ.convertToBase64PrivateKey(userKeys);
             // Store hash and username in DB
             await this.usersDB.addUser({
                 username,
                 password: hashedPassword,
-                publicKey: userKeys.publicKey,
-                privateKey: userKeys.privateKey,
+                publicKey: publicKeyBase64,
+                privateKey: privateKeyBase64,
             });
             user = await this.usersDB.getUser(username);
 
@@ -132,6 +137,7 @@ export class AuthenticationService {
             const data = await this.register(username, password);
             res.status(200).json(data).end(); //{token, userInfo}
         } catch (err) {
+            console.log(err);
             if (err.message == "Username already exists") {
                 res.status(200).json({ register: "failed" }).end();
             } else {

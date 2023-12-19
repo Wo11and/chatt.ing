@@ -1,29 +1,112 @@
 import { database } from "../knexconfig.js";
 import "dotenv/config";
 
-const serverPrivateKey = process.env.ENCRYPTION_PRIVATE_KEY;
-const serverPublicKey = process.env.ENCRYPTION_PUBLIC_KEY;
+const serverPrivateKeyBase64 = process.env.ENCRYPTION_PRIVATE_KEY;
+const serverPublicKeyBase64 = process.env.ENCRYPTION_PUBLIC_KEY;
 
 export class EncryptionService {
-    getPublicKey = async (username) => {
-        user = await database("users").where("username", username).first();
-        return user.publicKey;
-    };
-    setPublicKey = async (username, newPublicKey) => {
-        return await database("users").where("username", username).update({
-            publicKey: newPublicKey,
-        });
+    convertToBase64PublicKey = async (keyPair) => {
+        const publicKey = await crypto.subtle.exportKey(
+            "spki",
+            keyPair.publicKey
+        );
+        const publicKeyBase64 = btoa(
+            String.fromCharCode(...new Uint8Array(publicKey))
+        );
+        return publicKeyBase64;
     };
 
+    convertToBase64PrivateKey = async (keyPair) => {
+        const privateKey = await crypto.subtle.exportKey(
+            "pkcs8",
+            keyPair.privateKey
+        );
+        const privateKeyBase64 = btoa(
+            String.fromCharCode(...new Uint8Array(privateKey))
+        );
+        return privateKeyBase64;
+    };
+
+    convertFromBase64PublicKey = async (base64PublicKey) => {
+        // Decode the base64-encoded public key
+        const publicKeyBinary = atob(base64PublicKey);
+        // Convert the binary data to a Uint8Array
+        const publicKeyBytes = new Uint8Array(publicKeyBinary.length);
+        for (let i = 0; i < publicKeyBinary.length; ++i) {
+            publicKeyBytes[i] = publicKeyBinary.charCodeAt(i);
+        }
+        // Import the public key
+        const importedPublicKey = await crypto.subtle.importKey(
+            "spki",
+            publicKeyBytes,
+            {
+                name: "RSA-OAEP",
+                hash: { name: "SHA-256" },
+            },
+            true,
+            ["encrypt"]
+        );
+        // Now you can use the imported public key for encryption
+        // For example, you can use crypto.subtle.encrypt()
+        return importedPublicKey;
+    };
+
+    convertFromBase64PrivateKey = async (base64PrivateKey) => {
+        // Decode the base64-encoded private key
+        const privateKeyBinary = atob(base64PrivateKey);
+        // Convert the binary data to a Uint8Array
+        const privateKeyBytes = new Uint8Array(privateKeyBinary.length);
+        for (let i = 0; i < privateKeyBinary.length; ++i) {
+            privateKeyBytes[i] = privateKeyBinary.charCodeAt(i);
+        }
+        // Import the private key
+        const importedPrivateKey = await crypto.subtle.importKey(
+            "pkcs8",
+            privateKeyBytes,
+            {
+                name: "RSA-OAEP",
+                hash: { name: "SHA-256" },
+            },
+            true,
+            ["decrypt"]
+        );
+        // Now you can use the imported private key for decryption
+        // For example, you can use crypto.subtle.decrypt()
+        return importedPrivateKey;
+    };
+
+    getPublicKey = async (username) => {
+        const user = await database("users")
+            .where("username", username)
+            .first();
+        const base64 = user.publicKey;
+        const toReturn = await this.convertFromBase64PublicKey(base64);
+        return toReturn;
+    };
+    // setPublicKey = async (username, newPublicKey) => {
+    //     return await database("users")
+    //         .where("username", username)
+    //         .update({
+    //             publicKey: JSON.stringify(newPublicKey),
+    //         });
+    // };
+
     getPrivateKey = async (username) => {
-        user = await database("users").where("username", username).first();
-        return user.privateKey;
+        const user = await database("users")
+            .where("username", username)
+            .first();
+        console.log(user);
+        const base64 = user.publicKey;
+        const toReturn = await this.convertFromBase64PrivateKey(base64);
+        return toReturn;
     };
-    setPrivateKey = async (username, newPrivateKey) => {
-        return await database("users").where("username", username).update({
-            privateKey: newPrivateKey,
-        });
-    };
+    // setPrivateKey = async (username, newPrivateKey) => {
+    //     return await database("users")
+    //         .where("username", username)
+    //         .update({
+    //             privateKey: JSON.stringify(newPrivateKey),
+    //         });
+    // };
 
     generateKeys = async () => {
         return await crypto.subtle.generateKey(
@@ -62,7 +145,26 @@ export class EncryptionService {
         return decoder.decode(decryptedMessage);
     };
 
+    decryptMiddleware = async (req, res) => {
+        const encryptedMessage = req.body.encryptedMessage;
+        const toUsername = req.body.toUsername;
+        try {
+            const privateKey = await this.getPrivateKey(toUsername);
+            const decryptedMessage = await this.decrypt(
+                encryptedMessage,
+                privateKey
+            );
+            res.status(200).json({ message: decryptedMessage }).end();
+        } catch (err) {
+            console.log(err);
+            res.status(400).json({ message: undefined }).end();
+        }
+    };
+
     decryptServer = async (messageObject) => {
+        const serverPrivateKey = await this.convertFromBase64PrivateKey(
+            serverPrivateKeyBase64
+        );
         const firstDecrypt = await this.decrypt(
             messageObject.content,
             serverPrivateKey
@@ -85,9 +187,10 @@ export class EncryptionService {
     doubleEncrypt = async (messageObject) => {
         const toUsername = messageObject.to.username;
         const message = messageObject.content;
-        const firstEncrypt = await this.encrypt(
-            message,
-            this.getPublicKey(toUsername)
+        const pubKey = await this.getPublicKey(toUsername);
+        const firstEncrypt = await this.encrypt(message, pubKey);
+        const serverPublicKey = await this.convertFromBase64PublicKey(
+            serverPublicKeyBase64
         );
         const secondEncrypt = await this.encrypt(firstEncrypt, serverPublicKey);
         return {
@@ -99,19 +202,25 @@ export class EncryptionService {
     };
 
     doubleDecrypt = async (messageObject) => {
-        const firstDecrypt = await this.decrypt(
-            messageObject.content,
-            serverPrivateKey
-        );
-        const message = await this.decrypt(
-            firstDecrypt,
-            this.getPrivateKey(messageObject.to.username)
-        );
-        return {
-            from: messageObject.from,
-            to: messageObject.to,
-            content: message,
-            createdAt: messageObject.createdAt,
-        };
+        try {
+            const serverPrivateKey = await this.convertFromBase64PrivateKey(
+                serverPrivateKeyBase64
+            );
+            const firstDecrypt = await this.decrypt(
+                messageObject.content,
+                serverPrivateKey
+            );
+            const privKey = await this.getPrivateKey(messageObject.to.username);
+            const message = await this.decrypt(firstDecrypt, privKey);
+            return {
+                from: messageObject.from,
+                to: messageObject.to,
+                content: message,
+                createdAt: messageObject.createdAt,
+            };
+        } catch (err) {
+            console.log(err);
+            console.log(messageObject);
+        }
     };
 }

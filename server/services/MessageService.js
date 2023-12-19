@@ -39,7 +39,9 @@ class MessageService {
             .limit(pageSize);
 
         let arrResult = (await result.toArray()).forEach((el) => {
-            this.encryptionServ.doubleDecrypt(el);
+            if (el && el.content && typeof el.content == String) {
+                this.encryptionServ.doubleDecrypt(el);
+            }
         });
         return arrResult;
     }

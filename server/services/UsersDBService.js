@@ -1,3 +1,5 @@
+import { database } from "../knexconfig.js";
+
 export class UsersDBService {
     getUser = async (username) => {
         const user = await database("users")
