@@ -15,7 +15,7 @@ export class AuthenticationService {
     login = async (username, password) => {
         try {
             //check if user exists in db
-            const user = this.usersDB.getUser(username);
+            const user = await this.usersDB.getUser(username);
             if (!user) {
                 // If username exists, return an error or throw an exception
                 throw new Error("Username doesnt exist");
@@ -150,6 +150,7 @@ export class AuthenticationService {
     loginMiddleware = async (req, res, next) => {
         const username = req.body.username;
         const password = req.body.password;
+        // console.log("credentials", username, password);
         try {
             const data = await this.login(username, password);
             res.status(200).json(data).end(); //{token, userInfo}

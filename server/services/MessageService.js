@@ -1,23 +1,22 @@
 import { mongoDbClient } from "../mongodbconfig.js";
 import { EncryptionService } from "./EncryptionService.js";
 
+const encryptionServ = new EncryptionService();
+const messages = mongoDbClient.db("chatting").collection("messages");
 class MessageService {
-    messages = mongoDbClient.db("chatting").collection("messages");
-    encryptionServ = new EncryptionService();
     async save(message) {
-        const doubleEncryptedMessage =
-            this.encryptionServ.doubleEncrypt(message);
+        const doubleEncryptedMessage = encryptionServ.doubleEncrypt(message);
         const toInsert = {
             from: message.from,
             to: message.to,
             content: doubleEncryptedMessage,
             createdAt: message.createdAt,
         };
-        this.messages.insertOne(toInsert);
+        messages.insertOne(toInsert);
     }
 
     async getConversation(id1, id2, page = 1, pageSize = 5) {
-        const result = this.messages
+        const result = messages
             .find({
                 $or: [
                     {
@@ -38,9 +37,10 @@ class MessageService {
             .skip(pageSize * (page - 1))
             .limit(pageSize);
 
-        let arrResult = (await result.toArray()).forEach((el) => {
+        let arrResult = (await result.toArray()).map((el) => {
+            console.log(el);
             if (el && el.content && typeof el.content == String) {
-                this.encryptionServ.doubleDecrypt(el);
+                return encryptionServ.doubleDecrypt(el);
             }
         });
         return arrResult;

@@ -101,10 +101,13 @@ socket.on("users", (users) => {
     });
 });
 
-socket.on("private message", (message) => {
+socket.on("private message", async (message) => {
     if (reciever && message.from.id === reciever.id) {
-        decryption.decrypt(message.content, message.to.username);
-        displayMessage(message, { incoming: true, bottom: true });
+        const decryptedMessage = await decryption.decrypt(
+            message.content,
+            message.to.username
+        );
+        displayMessage(decryptedMessage, { incoming: true, bottom: true });
     }
 });
 
