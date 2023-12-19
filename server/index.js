@@ -7,6 +7,7 @@ import { AuthenticationService } from "./services/authenticate.js";
 import { messageService } from "./services/MessageService.js";
 import { TokenService } from "./services/TokenService.js";
 import { EncryptionService } from "./services/EncryptionService.js";
+import { EncryptionKeysService } from "./services/EncryptionKeysService.js";
 
 const app = express();
 app.use(cors());
@@ -20,6 +21,7 @@ const io = new Server(server, {
 const port = process.env.SERVER_PORT;
 const auth = new AuthenticationService();
 const encryptionServ = new EncryptionService();
+const keysServ = new EncryptionKeysService();
 const tokenService = new TokenService();
 
 app.use(express.json());
@@ -113,7 +115,7 @@ io.on("connection", (socket) => {
         }
         messageService.save(messageWithoutToken);
 
-        const toPubKey = await encryptionServ.getPublicKey(id);
+        const toPubKey = await keysServ.getPublicKey(message.to.username);
         const encryptedMessage = await encryptionServ.encrypt(
             messageWithoutToken,
             toPubKey

@@ -3,14 +3,14 @@ import bcrypt from "bcrypt";
 import "dotenv/config";
 import { database } from "../knexconfig.js";
 import { UsersDBService } from "./UsersDBService.js";
-import { EncryptionService } from "./EncryptionService.js";
+import { EncryptionKeysService } from "./EncryptionKeysService.js";
 
 const webTokenSecret = process.env.WEB_TOKEN_SECRET;
 const bcrypt_saltRounds = 10;
 
 export class AuthenticationService {
     usersDB = new UsersDBService();
-    encryptServ = new EncryptionService();
+    keysServ = new EncryptionKeysService();
 
     login = async (username, password) => {
         try {
@@ -68,11 +68,11 @@ export class AuthenticationService {
                 bcrypt_saltRounds
             );
 
-            const userKeys = await this.encryptServ.generateKeys();
+            const userKeys = await this.keysServ.generateKeys();
             const publicKeyBase64 =
-                await this.encryptServ.convertToBase64PublicKey(userKeys);
+                await this.keysServ.convertToBase64PublicKey(userKeys);
             const privateKeyBase64 =
-                await this.encryptServ.convertToBase64PrivateKey(userKeys);
+                await this.keysServ.convertToBase64PrivateKey(userKeys);
             // Store hash and username in DB
             await this.usersDB.addUser({
                 username,
