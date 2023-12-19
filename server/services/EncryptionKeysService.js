@@ -1,3 +1,5 @@
+import { database } from "../knexconfig.js";
+
 export class EncryptionKeysService {
     convertToBase64PublicKey = async (keyPair) => {
         const publicKey = await crypto.subtle.exportKey(

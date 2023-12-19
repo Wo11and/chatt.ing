@@ -139,6 +139,7 @@ io.on("connection", (socket) => {
         }
 
         const result = await messageService.getConversation(id1, id2, page);
+        console.log("result:", result);
         socket.emit("get chat", result);
     });
 });
