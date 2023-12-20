@@ -1,4 +1,3 @@
-import { database } from "../knexconfig.js";
 import "dotenv/config";
 import { EncryptionKeysService } from "./EncryptionKeysService.js";
 
@@ -16,27 +15,95 @@ export class EncryptionService {
     keys = new EncryptionKeysService();
 
     encrypt = async (message, publicKey) => {
-        const encoder = new TextEncoder();
-        const encodedMessage = encoder.encode(message);
+        try {
+            const chunkSize = 75;
+            const chunks = [];
+            const encoder = new TextEncoder("utf-8");
+            for (let i = 0; i < message.length; i += chunkSize) {
+                const chunk = message.slice(i, i + chunkSize);
+                const encodedMessage = encoder.encode(chunk);
 
-        const encryptedMessage = await crypto.subtle.encrypt(
-            { name: "RSA-OAEP" },
-            publicKey,
-            encodedMessage
-        );
-
-        return new Uint8Array(encryptedMessage);
+                const encryptedMessage = await crypto.subtle.encrypt(
+                    { name: "RSA-OAEP" },
+                    publicKey,
+                    encodedMessage
+                );
+                chunks.push(encryptedMessage);
+            }
+            return chunks;
+        } catch (err) {
+            console.log(err);
+        }
     };
 
-    decrypt = async (encryptedMessage, privateKey) => {
-        const decoder = new TextDecoder();
+    decrypt = async (encryptedChunks, privateKey) => {
+        try {
+            const decoder = new TextDecoder("utf-8");
 
-        const decryptedMessage = await crypto.subtle.decrypt(
-            { name: "RSA-OAEP" },
-            privateKey,
-            encryptedMessage
-        );
-        return decoder.decode(decryptedMessage);
+            const decryptedChunks = [];
+
+            for (let i = 0; i < encryptedChunks.length; i++) {
+                const encryptedChunk = encryptedChunks[i];
+                const decryptedChunk = await crypto.subtle.decrypt(
+                    { name: "RSA-OAEP" },
+                    privateKey,
+                    encryptedChunk
+                );
+                const decryptedString = decoder.decode(decryptedChunk);
+                decryptedChunks.push(decryptedString);
+            }
+            const decryptedMessage = decryptedChunks.join("");
+            return decryptedMessage;
+        } catch (err) {
+            console.log(err);
+            return "";
+        }
+    };
+
+    decryptServ = async (encryptedChunks, privateKey) => {
+        try {
+            const decoder = new TextDecoder("utf-8");
+
+            const decryptedChunks = [];
+
+            for (let i = 0; i < encryptedChunks.length; i++) {
+                const encryptedChunk = encryptedChunks[i];
+                const decryptedChunk = await crypto.subtle.decrypt(
+                    { name: "RSA-OAEP" },
+                    privateKey,
+                    encryptedChunk
+                );
+                const decryptedString = decoder.decode(decryptedChunk);
+                decryptedChunks.push(decryptedString);
+            }
+            // const decryptedMessage = decryptedChunks.join("");
+            return decryptedChunks;
+        } catch (err) {
+            console.log(err);
+            return "";
+        }
+    };
+
+    decryptServer = async (encryptedChunks, privateKey) => {
+        try {
+            const decoder = new TextDecoder();
+
+            const decryptedChunks = [];
+
+            for (let i = 0; i < encryptedChunks.length; i++) {
+                const encryptedChunk = encryptedChunks[i];
+                const decryptedChunk = await crypto.subtle.decrypt(
+                    { name: "RSA-OAEP" },
+                    privateKey,
+                    encryptedChunk
+                );
+                const decryptedString = decoder.decode(decryptedChunk);
+                decryptedChunks.push(decryptedString);
+            }
+            return decryptedChunks;
+        } catch (err) {
+            console.log(err);
+        }
     };
 
     decryptMiddleware = async (req, res) => {
@@ -55,37 +122,55 @@ export class EncryptionService {
         }
     };
 
-    decryptServer = async (messageObject) => {
-        const serverPrivateKey = await this.keys.convertFromBase64PrivateKey(
-            serverPrivateKeyBase64
-        );
-        const firstDecrypt = await this.decrypt(
-            messageObject.content,
-            serverPrivateKey
-        );
-        return {
-            from: messageObject.from,
-            to: messageObject.to,
-            content: firstDecrypt,
-            createdAt: messageObject.createdAt,
-        };
-    };
+    // decryptServer = async (messageObject) => {
+    //     const serverPrivateKey = await this.keys.convertFromBase64PrivateKey(
+    //         serverPrivateKeyBase64
+    //     );
+    //     const firstDecrypt = await this.decrypt(
+    //         messageObject.content,
+    //         serverPrivateKey
+    //     );
+    //     return {
+    //         from: messageObject.from,
+    //         to: messageObject.to,
+    //         content: firstDecrypt,
+    //         createdAt: messageObject.createdAt,
+    //     };
+    // };
 
     doubleEncrypt = async (messageObject) => {
-        const toUsername = messageObject.to.username;
-        const message = messageObject.content;
-        const pubKey = await this.keys.getPublicKey(toUsername);
-        const firstEncrypt = await this.encrypt(message, pubKey);
-        const serverPublicKey = await this.keys.convertFromBase64PublicKey(
-            serverPublicKeyBase64
-        );
-        const secondEncrypt = await this.encrypt(firstEncrypt, serverPublicKey);
-        return {
-            from: messageObject.from,
-            to: messageObject.to,
-            content: secondEncrypt,
-            createdAt: messageObject.createdAt,
-        };
+        try {
+            const recipientUsername = messageObject.to.username;
+            const message = messageObject.content;
+            const recipientPublicKey = await this.keys.getPublicKey(
+                recipientUsername
+            );
+            const firstEncrypt = await this.encrypt(
+                message,
+                recipientPublicKey
+            );
+
+            const serverPublicKey = await this.keys.convertFromBase64PublicKey(
+                serverPublicKeyBase64
+            );
+            const encryptedTwice = [];
+            firstEncrypt.forEach(async (el) => {
+                const encryptedEl = await crypto.subtle.encrypt(
+                    { name: "RSA-OAEP" },
+                    serverPublicKey,
+                    el
+                );
+                encryptedTwice.push(encryptedEl);
+            });
+            return {
+                from: messageObject.from,
+                to: messageObject.to,
+                content: secondEncrypt,
+                createdAt: messageObject.createdAt,
+            };
+        } catch (err) {
+            console.log(err);
+        }
     };
 
     doubleDecrypt = async (messageObject) => {
@@ -98,6 +183,7 @@ export class EncryptionService {
                 messageObject.content,
                 serverPrivateKey
             );
+
             const privKey = await this.keys.getPrivateKey(
                 messageObject.to.username
             );
