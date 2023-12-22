@@ -13,6 +13,19 @@ const serverPublicKeyBase64 = process.env.ENCRYPTION_PUBLIC_KEY;
 
 export class EncryptionService {
     keys = new EncryptionKeysService();
+    encodeArrayBuffersToBase64 = (arrayBuffers) => {
+        const binaryChunks = arrayBuffers.map((buffer) =>
+            Buffer.from(buffer).toString("base64")
+        );
+        return binaryChunks.join(",");
+    };
+
+    decodeBase64ToArrayBuffers = (base64String) => {
+        const binaryChunks = base64String.split(",");
+        return binaryChunks.map(
+            (chunk) => new Uint8Array(Buffer.from(chunk, "base64")).buffer
+        );
+    };
 
     encrypt = async (message, publicKey) => {
         try {
@@ -145,6 +158,7 @@ export class EncryptionService {
             const recipientPublicKey = await this.keys.getPublicKey(
                 recipientUsername
             );
+
             const firstEncrypt = await this.encrypt(
                 message,
                 recipientPublicKey
@@ -153,19 +167,28 @@ export class EncryptionService {
             const serverPublicKey = await this.keys.convertFromBase64PublicKey(
                 serverPublicKeyBase64
             );
-            const encryptedTwice = [];
-            firstEncrypt.forEach(async (el) => {
-                const encryptedEl = await crypto.subtle.encrypt(
-                    { name: "RSA-OAEP" },
-                    serverPublicKey,
-                    el
-                );
-                encryptedTwice.push(encryptedEl);
-            });
+
+            const base64Message = encodeArrayBuffersToBase64(firstEncrypt);
+
+            const encryptedTwice = await this.encrypt(
+                base64Message,
+                serverPublicKey
+            );
+
+            const base64Encrypted2 = encodeArrayBuffersToBase64(encryptedTwice);
+
+            // firstEncrypt.forEach(async (el) => {
+            //     const encryptedEl = await crypto.subtle.encrypt(
+            //         { name: "RSA-OAEP" },
+            //         serverPublicKey,
+            //         el
+            //     );
+            //     encryptedTwice.push(encryptedEl);
+            // });
             return {
                 from: messageObject.from,
                 to: messageObject.to,
-                content: secondEncrypt,
+                content: base64Encrypted2,
                 createdAt: messageObject.createdAt,
             };
         } catch (err) {
@@ -179,19 +202,27 @@ export class EncryptionService {
                 await this.keys.convertFromBase64PrivateKey(
                     serverPrivateKeyBase64
                 );
-            const firstDecrypt = await this.decrypt(
-                messageObject.content,
+
+            const encrypted2decrypt = decodeBase64ToArrayBuffers(
+                messageObject.content
+            );
+
+            const decrypted1base64 = await decryptMessage(
+                encrypted2decrypt,
                 serverPrivateKey
             );
 
+            const decrypted1 = decodeBase64ToArrayBuffers(decrypted1base64);
             const privKey = await this.keys.getPrivateKey(
                 messageObject.to.username
             );
-            const message = await this.decrypt(firstDecrypt, privKey);
+
+            const decrypted2 = await decryptMessage(decrypted1, privKey);
+
             return {
                 from: messageObject.from,
                 to: messageObject.to,
-                content: message,
+                content: decrypted2,
                 createdAt: messageObject.createdAt,
             };
         } catch (err) {

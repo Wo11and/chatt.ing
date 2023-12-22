@@ -32,23 +32,7 @@ describe("Encryption Module", () => {
             message,
             keyPair.publicKey
         );
-        // const encryptedTwice = [];
-
-        // const chunkSize = 100;
-        // const chunks = [];
-        // const encoder = new TextEncoder();
-        // for (let i = 0; i < encryptedOnce.length; i += chunkSize) {
-        //     const chunk = encryptedOnce.slice(i, i + chunkSize);
-        //     const encodedMessage = encoder.encode(chunk);
-        //     const encryptedMessage = await crypto.subtle.encrypt(
-        //         { name: "RSA-OAEP" },
-        //         serverPublic,
-        //         encodedMessage
-        //     );
-        //     chunks.push(encryptedMessage);
-        // }
         const chunks = await encryptServ.encrypt(encryptedOnce, serverPublic);
-        // console.log(chunks);
         expect(chunks).not.toBeUndefined();
     });
 
@@ -81,62 +65,51 @@ describe("Encryption Module", () => {
     });
 
     test("Double decrypt", async () => {
-        // First encryption
-        const encryptedOnce = await encryptServ.encrypt(
-            message,
-            keyPair.publicKey
-        );
-        console.log("Encrypted Once:", encryptedOnce);
-        // const ui8EncryptOnce = new Uint8Array(encryptedOnce.flat()[0]);
-        // console.log(ui8EncryptOnce);
-        var decoder = new TextDecoder("utf-8");
-        // console.log(decoder.decode(ui8EncryptOnce));
-
-        // Second encryption
-        const encryptedTwice = [];
-        for (const el of encryptedOnce) {
-            const ui8El = new Uint8Array(el);
-            const encryptedTwiceEl = await encryptServ.encrypt(
-                decoder.decode(ui8El),
-                serverPublic
+        async function generateAsymmetricKeyPair() {
+            const subtle = crypto.subtle;
+            const keys = await subtle.generateKey(
+                {
+                    name: "RSA-OAEP",
+                    modulusLength: 2048,
+                    publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
+                    hash: { name: "SHA-256" },
+                },
+                true,
+                ["encrypt", "decrypt"]
             );
-            encryptedTwice.push(encryptedTwiceEl);
+            return keys;
         }
-        console.log("Encrypted Twice:", encryptedTwice);
 
-        // Second decryption
-        var decryptedTwice = [];
-        for (const el of encryptedTwice) {
-            console.log(el);
-            const decryptedTwiceEl = await encryptServ.decryptServ(
-                el,
-                serverPrivate
-            );
-            decryptedTwice.push(decryptedTwiceEl);
-        }
-        var encoder = new TextEncoder("utf-8");
+        const a = await generateAsymmetricKeyPair();
+        const Pubkey1 = a.publicKey;
+        const PrivKey1 = a.privateKey;
+        const b = await generateAsymmetricKeyPair();
+        const PubKey2 = b.publicKey;
+        const PrivKey2 = b.privateKey;
 
-        console.log("Decrypted Twice:", decryptedTwice);
-        const ui8DecryTwice = [];
-        for (const el of decryptedTwice[0]) {
-            let encoded = new Uint8Array(encoder.encode(el).buffer);
-            // Ensure that encoded is exactly 256 bytes
-            const paddedEncoded = new Uint8Array(256);
-            paddedEncoded.set(encoded.slice(0, Math.min(256, encoded.length)));
+        const encrypted = await encryptServ.encrypt(message, Pubkey1);
 
-            ui8DecryTwice.push(paddedEncoded.buffer);
-        }
-        console.log("Encoded Decrypted Twice:", ui8DecryTwice);
+        const base64Message = encryptServ.encodeArrayBuffersToBase64(encrypted);
 
-        // First decryption
-        const decryptedOnce = await encryptServ.decrypt(
-            ui8DecryTwice,
-            keyPair.privateKey
+        const encrypted2 = await encryptServ.encrypt(base64Message, PubKey2);
+
+        const base64Encrypted2 =
+            encryptServ.encodeArrayBuffersToBase64(encrypted2);
+
+        const encrypted2decrypt =
+            encryptServ.decodeBase64ToArrayBuffers(base64Encrypted2);
+
+        const decrypted1base64 = await encryptServ.decrypt(
+            encrypted2decrypt,
+            PrivKey2
         );
-        console.log("Decrypted Once:", decryptedOnce);
 
-        // Assert that the final decrypted message matches the original message
-        expect(decryptedOnce).toMatch(message);
+        const decrypted1 =
+            encryptServ.decodeBase64ToArrayBuffers(decrypted1base64);
+
+        const decrypted2 = await encryptServ.decrypt(decrypted1, PrivKey1);
+
+        expect(decrypted2).toMatch(message);
     });
     test("Decrypt only using server private key", async () => {});
 });
