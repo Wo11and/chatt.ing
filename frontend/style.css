@@ -1,92 +1,97 @@
 body {
-	display: flex;
-	--highlighted: grey;
-	--incoming-background: #f3f3f3;
-	--outgoing-background: #23b793;
-	background-color: rgb(57, 58, 58);
+  display: flex;
+  --highlighted: grey;
+  --incoming-background: #f3f3f3;
+  --outgoing-background: #23b793;
+  background-color: rgb(57, 58, 58);
 }
 h3 {
-	margin: 0;
+  margin: 0;
 }
 aside {
-	box-shadow: 0 2px 3px grey inset;
-	padding: 10px;
+  box-shadow: 0 2px 3px grey inset;
+  padding: 10px;
 }
 
 main {
-	display: flex;
-	width: 80%;
-	align-items: center;
-	justify-content: center;
-	align-content: center;
-	flex-direction: column;
-	margin: auto;
+  display: flex;
+  width: 80%;
+  align-items: center;
+  justify-content: center;
+  align-content: center;
+  flex-direction: column;
+  margin: auto;
 }
 
 #chatCanvas {
-	margin-top: 7.5vh;
-	height: 75vh;
-	overflow: scroll;
-	width:80%;
-	background-color: dimgray;
-	border-radius: 10px;
+  margin-top: 7.5vh;
+  height: 75vh;
+  overflow: scroll;
+  width: 80%;
+  background-color: dimgray;
+  border-radius: 10px;
 }
 
 .buttons button {
-	padding: 10px;
-	border-radius: 10px;
-	margin: auto;
+  padding: 10px;
+  border-radius: 10px;
+  margin: auto;
 }
 
 .textareaAndButtons {
-	width: 80%;
-	display:flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: center;
-	height: 10vh;
+  width: 80%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  height: 10vh;
 }
 
 .textareaAndButtons textarea {
-	margin-right: 10px;
-	width: 80%;
-	border-radius: 10px;
-	font-size: 1rem;
-	resize: none;
-	height: 100%;
+  margin-right: 10px;
+  width: 80%;
+  border-radius: 10px;
+  font-size: 1rem;
+  resize: none;
+  height: 100%;
 }
 
 #activeUsers {
-	display: flex;
-	flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 .userCard {
-	padding: 10px 20px;
-	border-radius: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
 }
 .userCard:hover {
-	background-color: var(--highlighted);
+  background-color: var(--highlighted);
 }
 
 #chatCanvas {
-	display: flex;
-	flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 .message {
-	width: fit-content;
-	padding: 20px;
-	border-radius: 8px;
-	margin: 10px;
-	word-break: break-all;
+  width: fit-content;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 10px;
+  word-break: break-all;
 }
 
 .incoming {
-	background-color: var(--incoming-background);
-	align-self: flex-start;
+  background-color: var(--incoming-background);
+  align-self: flex-start;
 }
 
 .outgoing {
-	background-color: var(--outgoing-background);
-	align-self: flex-end;
+  background-color: var(--outgoing-background);
+  align-self: flex-end;
+}
+
+.message > img {
+  max-width: 300px;
+  max-height: 300px;
 }

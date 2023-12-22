@@ -14,6 +14,7 @@ const io = new Server(server, {
     cors: {
         origin: process.env.CLIENT_ADRESS,
     },
+    // maxHttpBufferSize: 1e10,
 });
 
 const port = process.env.SERVER_PORT;
@@ -80,7 +81,7 @@ io.on("connection", (socket) => {
         socket.broadcast.emit("users", activeUsers);
     });
 
-    socket.on("private message", async (message) => {
+    socket.on("new private message", async (message) => {
         const id = message.to.id;
         const user = activeUsers.find((user) => id === user.userId);
 
