@@ -73,47 +73,54 @@ export class EncryptionService {
         }
     };
 
-    decryptServ = async (encryptedChunks, privateKey) => {
+    decryptServer = async (messageObject) => {
         try {
-            const decoder = new TextDecoder("utf-8");
-
-            const decryptedChunks = [];
-
-            for (let i = 0; i < encryptedChunks.length; i++) {
-                const encryptedChunk = encryptedChunks[i];
-                const decryptedChunk = await crypto.subtle.decrypt(
-                    { name: "RSA-OAEP" },
-                    privateKey,
-                    encryptedChunk
+            const serverPrivateKey =
+                await this.keys.convertFromBase64PrivateKey(
+                    serverPrivateKeyBase64
                 );
-                const decryptedString = decoder.decode(decryptedChunk);
-                decryptedChunks.push(decryptedString);
-            }
-            // const decryptedMessage = decryptedChunks.join("");
-            return decryptedChunks;
+
+            const encrypted2decrypt = decodeBase64ToArrayBuffers(
+                messageObject.content
+            );
+
+            const decrypted1base64 = await decryptMessage(
+                encrypted2decrypt,
+                serverPrivateKey
+            );
+            return {
+                from: messageObject.from,
+                to: messageObject.to,
+                content: decrypted1base64,
+                createdAt: messageObject.createdAt,
+            };
         } catch (err) {
             console.log(err);
-            return "";
         }
     };
 
-    decryptServer = async (encryptedChunks, privateKey) => {
+    encryptServer = async (messageObject) => {
         try {
-            const decoder = new TextDecoder();
+            const serverPublicKey = await this.keys.convertFromBase64PublicKey(
+                serverPublicKeyBase64
+            );
 
-            const decryptedChunks = [];
+            const base64Message = this.encodeArrayBuffersToBase64(
+                messageObject.content
+            );
 
-            for (let i = 0; i < encryptedChunks.length; i++) {
-                const encryptedChunk = encryptedChunks[i];
-                const decryptedChunk = await crypto.subtle.decrypt(
-                    { name: "RSA-OAEP" },
-                    privateKey,
-                    encryptedChunk
-                );
-                const decryptedString = decoder.decode(decryptedChunk);
-                decryptedChunks.push(decryptedString);
-            }
-            return decryptedChunks;
+            const encrypted = await this.encrypt(
+                base64Message,
+                serverPublicKey
+            );
+
+            const base64Encrypted = encodeArrayBuffersToBase64(encrypted);
+            return {
+                from: messageObject.from,
+                to: messageObject.to,
+                content: base64Encrypted,
+                createdAt: messageObject.createdAt,
+            };
         } catch (err) {
             console.log(err);
         }
@@ -135,22 +142,6 @@ export class EncryptionService {
         }
     };
 
-    // decryptServer = async (messageObject) => {
-    //     const serverPrivateKey = await this.keys.convertFromBase64PrivateKey(
-    //         serverPrivateKeyBase64
-    //     );
-    //     const firstDecrypt = await this.decrypt(
-    //         messageObject.content,
-    //         serverPrivateKey
-    //     );
-    //     return {
-    //         from: messageObject.from,
-    //         to: messageObject.to,
-    //         content: firstDecrypt,
-    //         createdAt: messageObject.createdAt,
-    //     };
-    // };
-
     doubleEncrypt = async (messageObject) => {
         try {
             const recipientUsername = messageObject.to.username;
@@ -164,33 +155,14 @@ export class EncryptionService {
                 recipientPublicKey
             );
 
-            const serverPublicKey = await this.keys.convertFromBase64PublicKey(
-                serverPublicKeyBase64
-            );
-
-            const base64Message = encodeArrayBuffersToBase64(firstEncrypt);
-
-            const encryptedTwice = await this.encrypt(
-                base64Message,
-                serverPublicKey
-            );
-
-            const base64Encrypted2 = encodeArrayBuffersToBase64(encryptedTwice);
-
-            // firstEncrypt.forEach(async (el) => {
-            //     const encryptedEl = await crypto.subtle.encrypt(
-            //         { name: "RSA-OAEP" },
-            //         serverPublicKey,
-            //         el
-            //     );
-            //     encryptedTwice.push(encryptedEl);
-            // });
-            return {
+            const currentMessage = {
                 from: messageObject.from,
                 to: messageObject.to,
                 content: base64Encrypted2,
                 createdAt: messageObject.createdAt,
             };
+
+            return this.encryptServer(currentMessage);
         } catch (err) {
             console.log(err);
         }
@@ -198,26 +170,15 @@ export class EncryptionService {
 
     doubleDecrypt = async (messageObject) => {
         try {
-            const serverPrivateKey =
-                await this.keys.convertFromBase64PrivateKey(
-                    serverPrivateKeyBase64
-                );
-
-            const encrypted2decrypt = decodeBase64ToArrayBuffers(
-                messageObject.content
-            );
-
-            const decrypted1base64 = await decryptMessage(
-                encrypted2decrypt,
-                serverPrivateKey
-            );
-
-            const decrypted1 = decodeBase64ToArrayBuffers(decrypted1base64);
+            const decryptedFromServer = await this.decryptServer(messageObject);
             const privKey = await this.keys.getPrivateKey(
                 messageObject.to.username
             );
 
-            const decrypted2 = await decryptMessage(decrypted1, privKey);
+            const decrypted2 = await decryptMessage(
+                decryptedFromServer.content,
+                privKey
+            );
 
             return {
                 from: messageObject.from,
