@@ -5,14 +5,18 @@ const encryptionServ = new EncryptionService();
 const messages = mongoDbClient.db("chatting").collection("messages");
 class MessageService {
     async save(message) {
-        const doubleEncryptedMessage = encryptionServ.doubleEncrypt(message);
-        const toInsert = {
-            from: message.from,
-            to: message.to,
-            content: doubleEncryptedMessage,
-            createdAt: message.createdAt,
-        };
-        messages.insertOne(toInsert);
+        console.log("message before DE: ", message);
+        const doubleEncryptedMessage = await encryptionServ.doubleEncrypt(
+            message
+        );
+        // const toInsert = {
+        //     from: message.from,
+        //     to: message.to,
+        //     content: doubleEncryptedMessage,
+        //     createdAt: message.createdAt,
+        // };
+        console.log("Message after DE:", doubleEncryptedMessage);
+        messages.insertOne(doubleEncryptedMessage);
     }
 
     async getConversation(id1, id2, page = 1, pageSize = 5) {
@@ -38,7 +42,7 @@ class MessageService {
             .limit(pageSize);
 
         let arrResult = (await result.toArray()).map((el) => {
-            console.log(el);
+            console.log("MessageObject from DB: ", el);
             if (el && el.content && typeof el.content == String) {
                 return encryptionServ.doubleDecrypt(el);
             }

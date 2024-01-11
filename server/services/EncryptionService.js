@@ -105,16 +105,12 @@ export class EncryptionService {
                 serverPublicKeyBase64
             );
 
-            const base64Message = this.encodeArrayBuffersToBase64(
-                messageObject.content
-            );
-
             const encrypted = await this.encrypt(
-                base64Message,
+                messageObject.content,
                 serverPublicKey
             );
 
-            const base64Encrypted = encodeArrayBuffersToBase64(encrypted);
+            const base64Encrypted = this.encodeArrayBuffersToBase64(encrypted);
             return {
                 from: messageObject.from,
                 to: messageObject.to,
@@ -155,10 +151,13 @@ export class EncryptionService {
                 recipientPublicKey
             );
 
+            const base64Encrypted1 =
+                this.encodeArrayBuffersToBase64(firstEncrypt);
+
             const currentMessage = {
                 from: messageObject.from,
                 to: messageObject.to,
-                content: base64Encrypted2,
+                content: base64Encrypted1,
                 createdAt: messageObject.createdAt,
             };
 
@@ -170,6 +169,7 @@ export class EncryptionService {
 
     doubleDecrypt = async (messageObject) => {
         try {
+            console.log("To double decypt: ", messageObject);
             const decryptedFromServer = await this.decryptServer(messageObject);
             const privKey = await this.keys.getPrivateKey(
                 messageObject.to.username
