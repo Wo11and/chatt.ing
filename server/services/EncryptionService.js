@@ -4,6 +4,7 @@ import { EncryptionKeysService } from "./EncryptionKeysService.js";
 const serverPrivateKeyBase64 = process.env.ENCRYPTION_PRIVATE_KEY;
 const serverPublicKeyBase64 = process.env.ENCRYPTION_PUBLIC_KEY;
 
+// <-------- Message Object looks like that --------->
 // const message = {
 //     from: { username: credentials.name, id: credentials.id }, // TODO: Add token
 //     to: { username: reciever.username, id: reciever.id },
@@ -45,7 +46,7 @@ export class EncryptionService {
             }
             return chunks;
         } catch (err) {
-            console.log(err);
+            console.log("Error:", err);
         }
     };
 
@@ -68,7 +69,7 @@ export class EncryptionService {
             const decryptedMessage = decryptedChunks.join("");
             return decryptedMessage;
         } catch (err) {
-            console.log(err);
+            console.log("Error:", err);
             return "";
         }
     };
@@ -80,11 +81,11 @@ export class EncryptionService {
                     serverPrivateKeyBase64
                 );
 
-            const encrypted2decrypt = decodeBase64ToArrayBuffers(
+            const encrypted2decrypt = this.decodeBase64ToArrayBuffers(
                 messageObject.content
             );
 
-            const decrypted1base64 = await decryptMessage(
+            const decrypted1base64 = await this.decrypt(
                 encrypted2decrypt,
                 serverPrivateKey
             );
@@ -95,7 +96,7 @@ export class EncryptionService {
                 createdAt: messageObject.createdAt,
             };
         } catch (err) {
-            console.log(err);
+            console.log("Error:", err);
         }
     };
 
@@ -118,7 +119,7 @@ export class EncryptionService {
                 createdAt: messageObject.createdAt,
             };
         } catch (err) {
-            console.log(err);
+            console.log("Error:", err);
         }
     };
 
@@ -133,7 +134,7 @@ export class EncryptionService {
             );
             res.status(200).json({ message: decryptedMessage }).end();
         } catch (err) {
-            console.log(err);
+            console.log("Error:", err);
             res.status(400).json({ message: undefined }).end();
         }
     };
@@ -161,24 +162,23 @@ export class EncryptionService {
                 createdAt: messageObject.createdAt,
             };
 
-            return this.encryptServer(currentMessage);
+            return await this.encryptServer(currentMessage);
         } catch (err) {
-            console.log(err);
+            console.log("Error:", err);
         }
     };
 
     doubleDecrypt = async (messageObject) => {
         try {
-            console.log("To double decypt: ", messageObject);
             const decryptedFromServer = await this.decryptServer(messageObject);
             const privKey = await this.keys.getPrivateKey(
                 messageObject.to.username
             );
 
-            const decrypted2 = await decryptMessage(
-                decryptedFromServer.content,
-                privKey
+            const base64toArrayBuf = this.decodeBase64ToArrayBuffers(
+                decryptedFromServer.content
             );
+            const decrypted2 = await this.decrypt(base64toArrayBuf, privKey);
 
             return {
                 from: messageObject.from,
@@ -187,7 +187,7 @@ export class EncryptionService {
                 createdAt: messageObject.createdAt,
             };
         } catch (err) {
-            console.log(err);
+            console.log("Error:", err);
             console.log(messageObject);
         }
     };

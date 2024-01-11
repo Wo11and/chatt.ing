@@ -79,30 +79,15 @@ export class EncryptionKeysService {
         const toReturn = await this.convertFromBase64PublicKey(base64);
         return toReturn;
     };
-    // setPublicKey = async (username, newPublicKey) => {
-    //     return await database("users")
-    //         .where("username", username)
-    //         .update({
-    //             publicKey: JSON.stringify(newPublicKey),
-    //         });
-    // };
 
     getPrivateKey = async (username) => {
         const user = await database("users")
             .where("username", username)
             .first();
-        console.log(user);
-        const base64 = user.publicKey;
+        const base64 = user.privateKey;
         const toReturn = await this.convertFromBase64PrivateKey(base64);
         return toReturn;
     };
-    // setPrivateKey = async (username, newPrivateKey) => {
-    //     return await database("users")
-    //         .where("username", username)
-    //         .update({
-    //             privateKey: JSON.stringify(newPrivateKey),
-    //         });
-    // };
 
     generateKeys = async () => {
         return await crypto.subtle.generateKey(
