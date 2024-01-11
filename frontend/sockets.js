@@ -102,6 +102,7 @@ socket.on("users", (users) => {
 });
 
 socket.on("private message", async (message) => {
+    console.log("received message", message);
     if (reciever && message.from.id === reciever.id) {
         const decryptedMessage = await decryption.decrypt(
             message.content,

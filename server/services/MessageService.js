@@ -37,9 +37,7 @@ class MessageService {
         arrResult = await Promise.all(
             arrResult.map(async (el) => {
                 if (el && el.content) {
-                    console.log("<---- starting DDE ------->");
                     const res = await encryptionServ.doubleDecrypt(el);
-                    console.log("After DDE:", res);
                     return res;
                 }
             })

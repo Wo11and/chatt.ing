@@ -124,18 +124,22 @@ export class EncryptionService {
     };
 
     decryptMiddleware = async (req, res) => {
-        const encryptedMessage = req.body.encryptedMessage;
+        const encryptedMessageBase64 = req.body.encryptedMessage;
         const toUsername = req.body.toUsername;
+        const encryptedArrayBuf = this.decodeBase64ToArrayBuffers(
+            encryptedMessageBase64
+        );
+
         try {
             const privateKey = await this.keys.getPrivateKey(toUsername);
             const decryptedMessage = await this.decrypt(
-                encryptedMessage,
+                encryptedArrayBuf,
                 privateKey
             );
-            res.status(200).json({ message: decryptedMessage }).end();
+            res.status(200).json({ content: decryptedMessage }).end();
         } catch (err) {
             console.log("Error:", err);
-            res.status(400).json({ message: undefined }).end();
+            res.status(400).json({ content: undefined }).end();
         }
     };
 

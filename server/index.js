@@ -117,11 +117,18 @@ io.on("connection", (socket) => {
 
         const toPubKey = await keysServ.getPublicKey(message.to.username);
         const encryptedMessage = await encryptionServ.encrypt(
-            messageWithoutToken,
+            message.content,
             toPubKey
         );
-
-        socket.to(socketId).emit("private message", encryptedMessage);
+        const encryptedMessageBase64 =
+            await encryptionServ.encodeArrayBuffersToBase64(encryptedMessage);
+        const toSend = {
+            from: message.from,
+            to: message.to,
+            content: encryptedMessageBase64,
+            createdAt: message.createdAt,
+        };
+        socket.to(socketId).emit("private message", toSend);
     });
 
     socket.on("get chat", async (id1, id2, token, page) => {
