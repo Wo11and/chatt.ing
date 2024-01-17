@@ -1,5 +1,4 @@
 import { io } from "socket.io-client";
-import base64 from "base-64";
 import { localStorageSevice } from "./services/LocalStorageSevice";
 
 const activeUsersColumn = document.getElementById("activeUsers");

@@ -11,5 +11,5 @@ try {
     // socket.connect();
 } catch (err) {
     console.log(err);
-    window.location.href = `${frontendAddress}/login.html`;
+    window.location.replace = `${frontendAddress}/login.html`;
 }
