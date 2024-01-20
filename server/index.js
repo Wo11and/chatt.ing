@@ -33,9 +33,6 @@ app.post("/register", auth.registerMiddleware);
 
 app.post("/decrypt", encryptionServ.decryptMiddleware);
 
-//check token fore every http request to the backend below this line
-// app.use(auth.checkTokenMiddleware);
-
 app.get("/authencticate", auth.checkTokenMiddleware, (req, res) => {
     res.status(200).send({ ...req.data });
 });
@@ -52,25 +49,6 @@ io.on("connection", (socket) => {
     console.log("a user connected", socket.handshake.auth);
 });
 
-// verify the jwt token upon connecting
-// io.use(/*function that gets executed for every incoming socket*/)
-//
-// io.use((socket, next) => {
-// 	const user = verify jwt token
-// 	if (!username) {
-// 	  return next(new Error("invalid username"));
-// 	}
-// 	socket.username = user.username;
-// 	next();
-//   });
-
-// [
-// 	{
-// 		userId: 3,
-// 		socketId: 34,
-// 		username: asdf
-// 	}
-// ]
 let activeUsers = [];
 
 io.on("connection", (socket) => {
@@ -117,17 +95,28 @@ io.on("connection", (socket) => {
         messageService.save(messageWithoutToken);
 
         const toPubKey = await keysServ.getPublicKey(message.to.username);
-        const encryptedMessage = await encryptionServ.encrypt(
-            message.content,
-            toPubKey
-        );
+
+        const encryptedMessage =
+            message.type === "picture"
+                ? message
+                : await encryptionServ.encrypt(message.content, toPubKey);
+
         const encryptedMessageBase64 =
-            await encryptionServ.encodeArrayBuffersToBase64(encryptedMessage);
+            message.type === "picture"
+                ? message
+                : await encryptionServ.encodeArrayBuffersToBase64(
+                      encryptedMessage
+                  );
+
         const toSend = {
             from: message.from,
             to: message.to,
-            content: encryptedMessageBase64,
+            content:
+                message.type === "picture"
+                    ? message.content
+                    : encryptedMessageBase64,
             createdAt: message.createdAt,
+            type: message.type,
         };
         socket.to(socketId).emit("private message", toSend);
     });

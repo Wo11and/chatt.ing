@@ -5,10 +5,14 @@ const encryptionServ = new EncryptionService();
 const messages = mongoDbClient.db("chatting").collection("messages");
 class MessageService {
     async save(message) {
+        if (message.type === "picture") {
+            return messages.insertOne(message);
+        }
+
         const doubleEncryptedMessage = await encryptionServ.doubleEncrypt(
             message
         );
-        messages.insertOne(doubleEncryptedMessage);
+        return messages.insertOne(doubleEncryptedMessage);
     }
 
     async getConversation(id1, id2, page = 1, pageSize = 5) {
@@ -36,6 +40,9 @@ class MessageService {
         let arrResult = await result.toArray();
         arrResult = await Promise.all(
             arrResult.map(async (el) => {
+                if (el.type === "picture") {
+                    return el;
+                }
                 if (el && el.content) {
                     const res = await encryptionServ.doubleDecrypt(el);
                     return res;
