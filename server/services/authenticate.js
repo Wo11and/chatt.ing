@@ -2,17 +2,20 @@ import jsonwebtoken from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import "dotenv/config";
 import { database } from "../knexconfig.js";
+import { UsersDBService } from "./UsersDBService.js";
+import { EncryptionKeysService } from "./EncryptionKeysService.js";
 
 const webTokenSecret = process.env.WEB_TOKEN_SECRET;
 const bcrypt_saltRounds = 10;
 
 export class AuthenticationService {
-    async login(username, password) {
+    usersDB = new UsersDBService();
+    keysServ = new EncryptionKeysService();
+
+    login = async (username, password) => {
         try {
             //check if user exists in db
-            const user = await database("users")
-                .where("username", username)
-                .first();
+            const user = await this.usersDB.getUser(username);
             if (!user) {
                 // If username exists, return an error or throw an exception
                 throw new Error("Username doesnt exist");
@@ -48,16 +51,15 @@ export class AuthenticationService {
             console.log("Error during login: ", err);
             throw err;
         }
-    }
+    };
 
-    async register(username, password) {
+    register = async (username, password) => {
         try {
             //connect to db
             await database.raw("SELECT 1");
-            let user = await database("users")
-                .where("username", username)
-                .first();
+            let user = await this.usersDB.getUser(username);
             if (user !== undefined) {
+                console.log(user);
                 // If username exists, return an error or throw an exception
                 throw new Error("Username already exists");
             }
@@ -65,13 +67,20 @@ export class AuthenticationService {
                 password,
                 bcrypt_saltRounds
             );
+
+            const userKeys = await this.keysServ.generateKeys();
+            const publicKeyBase64 =
+                await this.keysServ.convertToBase64PublicKey(userKeys);
+            const privateKeyBase64 =
+                await this.keysServ.convertToBase64PrivateKey(userKeys);
             // Store hash and username in DB
-            //...
-            await database("users").insert({
+            await this.usersDB.addUser({
                 username,
                 password: hashedPassword,
+                publicKey: publicKeyBase64,
+                privateKey: privateKeyBase64,
             });
-            user = await database("users").where("username", username).first();
+            user = await this.usersDB.getUser(username);
 
             console.log("Created user: " + user.id);
             const token = jsonwebtoken.sign(
@@ -88,7 +97,7 @@ export class AuthenticationService {
             console.error("Error during registration:", error.message);
             throw error;
         }
-    }
+    };
 
     checkTokenMiddleware = (req, res, next) => {
         const header = req.headers["authorization"];
@@ -128,6 +137,7 @@ export class AuthenticationService {
             const data = await this.register(username, password);
             res.status(200).json(data).end(); //{token, userInfo}
         } catch (err) {
+            console.log(err);
             if (err.message == "Username already exists") {
                 res.status(200).json({ register: "failed" }).end();
             } else {
@@ -140,6 +150,7 @@ export class AuthenticationService {
     loginMiddleware = async (req, res, next) => {
         const username = req.body.username;
         const password = req.body.password;
+        // console.log("credentials", username, password);
         try {
             const data = await this.login(username, password);
             res.status(200).json(data).end(); //{token, userInfo}
