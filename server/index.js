@@ -65,8 +65,8 @@ io.on("connection", (socket) => {
         socket.broadcast.emit("users", activeUsers);
     });
 
-    socket.on("new private message", async (message) => {
-        const id = message.to.id;
+    socket.on("new private message", async (messageObject) => {
+        const id = messageObject.to.id;
         const user = activeUsers.find((user) => id === user.userId);
 
         if (!user) {
@@ -75,7 +75,7 @@ io.on("connection", (socket) => {
 
         const socketId = user.socketId;
 
-        const { token, ...messageWithoutToken } = message;
+        const { token, ...messageWithoutToken } = messageObject;
 
         let decodedToken;
         try {
@@ -86,37 +86,37 @@ io.on("connection", (socket) => {
 
         if (
             !decodedToken ||
-            decodedToken.username != message.from.username ||
-            decodedToken.id != message.from.id
+            decodedToken.username != messageObject.from.username ||
+            decodedToken.id != messageObject.from.id
         ) {
-            console.error("Unauthorized", decodedToken, message.to);
+            console.error("Unauthorized", decodedToken, messageObject.to);
             return;
         }
         messageService.save(messageWithoutToken);
 
-        const toPubKey = await keysServ.getPublicKey(message.to.username);
+        const toPubKey = await keysServ.getPublicKey(messageObject.to.username);
 
         const encryptedMessage =
-            message.type === "picture"
-                ? message
-                : await encryptionServ.encrypt(message.content, toPubKey);
+            messageObject.type === "picture"
+                ? messageObject
+                : await encryptionServ.encrypt(messageObject.content, toPubKey);
 
         const encryptedMessageBase64 =
-            message.type === "picture"
-                ? message
+            messageObject.type === "picture"
+                ? messageObject
                 : await encryptionServ.encodeArrayBuffersToBase64(
                       encryptedMessage
                   );
 
         const toSend = {
-            from: message.from,
-            to: message.to,
+            from: messageObject.from,
+            to: messageObject.to,
             content:
-                message.type === "picture"
-                    ? message.content
+                messageObject.type === "picture"
+                    ? messageObject.content
                     : encryptedMessageBase64,
-            createdAt: message.createdAt,
-            type: message.type,
+            createdAt: messageObject.createdAt,
+            type: messageObject.type,
         };
         socket.to(socketId).emit("private message", toSend);
     });
