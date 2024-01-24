@@ -2,6 +2,7 @@ import { io } from "socket.io-client";
 import base64 from "base-64";
 import { localStorageSevice } from "./services/LocalStorageSevice";
 import { decryptionService } from "./services/decryptionService";
+import { encryptedCommunications } from "./services/encryptedCommsWithServer";
 
 const activeUsersColumn = document.getElementById("activeUsers");
 const userCardTemplate = document.querySelector("#userCardTemplate");
@@ -18,6 +19,7 @@ let currentPage = undefined;
 const credentials = JSON.parse(new localStorageSevice("chatting_user").get());
 const token = JSON.parse(new localStorageSevice("token").get());
 const decryption = new decryptionService();
+const encryptedComms = new encryptedCommunications();
 
 if (!credentials) {
     window.location.href = `/login.html`;
@@ -27,7 +29,7 @@ const socket = io(import.meta.env.VITE_SERVER_ADRESS, {
     autoConnect: false,
 });
 
-sendButton.addEventListener("click", (e) => {
+sendButton.addEventListener("click", async (e) => {
     e.preventDefault();
     if (!reciever) {
         return;
@@ -39,14 +41,17 @@ sendButton.addEventListener("click", (e) => {
     }
 
     if (currentMessage) {
-        const message = {
+        const messageObject = {
             from: { username: credentials.name, id: credentials.id }, // TODO: Add token
             to: { username: reciever.username, id: reciever.id },
             content: currentMessage,
             createdAt: new Date(),
             token,
         };
-        socket.emit("new private message", message);
+
+        const symmetricEncryptedMessageObj =
+            await encryptedComms.encryptSymmetric(messageObject);
+        socket.emit("new private message", symmetricEncryptedMessageObj);
 
         displayMessage(message, { incoming: false, bottom: true });
     }
