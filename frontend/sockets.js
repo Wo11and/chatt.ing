@@ -45,6 +45,7 @@ sendButton.addEventListener("click", async (e) => {
             from: { username: credentials.name, id: credentials.id }, // TODO: Add token
             to: { username: reciever.username, id: reciever.id },
             content: currentMessage,
+            type: "text",
             createdAt: new Date(),
             token,
         };
@@ -53,7 +54,7 @@ sendButton.addEventListener("click", async (e) => {
             await encryptedComms.encryptSymmetric(messageObject);
         socket.emit("new private message", symmetricEncryptedMessageObj);
 
-        displayMessage(message, { incoming: false, bottom: true });
+        displayMessage(messageObject, { incoming: false, bottom: true });
     }
 
     if (file) {

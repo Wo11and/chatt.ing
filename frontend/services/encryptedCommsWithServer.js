@@ -1,3 +1,5 @@
+const frontendAddress = import.meta.env.VITE_ENCRYPTION_SYMMETRIC_KEY;
+
 export class encryptedCommunications {
     convertFromBase64SymmetricKey = async (keyBase64) => {
         const keyBufferDecoded = new Uint8Array(
@@ -17,8 +19,8 @@ export class encryptedCommunications {
     };
 
     encryptSymmetric = async (messageObject) => {
-        const symmetricKey = this.convertFromBase64SymmetricKey(
-            process.env.ENCRYPTION_SYMMETRIC_KEY
+        const symmetricKey = await this.convertFromBase64SymmetricKey(
+            frontendAddress
         );
 
         const encoder = new TextEncoder();
@@ -37,12 +39,13 @@ export class encryptedCommunications {
             content: encryptedContent,
             createdAt: messageObject.createdAt,
             type: messageObject.type,
+            token: messageObject.token,
         };
     };
 
     decryptSymmetric = async (messageObject, iv) => {
-        const symmetricKey = this.convertFromBase64SymmetricKey(
-            process.env.ENCRYPTION_SYMMETRIC_KEY
+        const symmetricKey = await this.convertFromBase64SymmetricKey(
+            frontendAddress
         );
         const decryptedBuffer = await crypto.subtle.decrypt(
             {
@@ -60,6 +63,7 @@ export class encryptedCommunications {
             content: decryptedMessage,
             createdAt: messageObject.createdAt,
             type: messageObject.type,
+            token: messageObject.token,
         };
     };
 }
