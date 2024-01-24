@@ -3,6 +3,7 @@ import { EncryptionKeysService } from "./EncryptionKeysService.js";
 
 const serverPrivateKeyBase64 = process.env.ENCRYPTION_PRIVATE_KEY;
 const serverPublicKeyBase64 = process.env.ENCRYPTION_PUBLIC_KEY;
+const symmetricKeyBase64 = process.env.ENCRYPTION_SYMMETRIC_KEY;
 
 // <-------- Message Object looks like that --------->
 // const message = {
@@ -10,6 +11,7 @@ const serverPublicKeyBase64 = process.env.ENCRYPTION_PUBLIC_KEY;
 //     to: { username: reciever.username, id: reciever.id },
 //     content: currentMessage,
 //     createdAt: new Date(),
+//     type: String
 // };
 
 export class EncryptionService {
@@ -94,10 +96,33 @@ export class EncryptionService {
                 to: messageObject.to,
                 content: decrypted1base64,
                 createdAt: messageObject.createdAt,
+                type: messageObject.type,
             };
         } catch (err) {
             console.log("Error:", err);
         }
+    };
+
+    decryptSymmetric = async (messageObject) => {
+        const symmetricKey =
+            this.keys.convertFromBase64SymmetricKey(symmetricKeyBase64);
+        const decryptedBuffer = await crypto.subtle.decrypt(
+            {
+                name: "AES-GCM",
+                iv: new Uint8Array(12), // No randomisation
+            },
+            symmetricKey,
+            messageObject.content
+        );
+        const decoder = new TextDecoder();
+        const decryptedMessage = decoder.decode(decryptedBuffer);
+        return {
+            from: messageObject.from,
+            to: messageObject.to,
+            content: decryptedMessage,
+            createdAt: messageObject.createdAt,
+            type: messageObject.type,
+        };
     };
 
     encryptServer = async (messageObject) => {
@@ -117,6 +142,7 @@ export class EncryptionService {
                 to: messageObject.to,
                 content: base64Encrypted,
                 createdAt: messageObject.createdAt,
+                type: messageObject.type,
             };
         } catch (err) {
             console.log("Error:", err);
@@ -164,6 +190,7 @@ export class EncryptionService {
                 to: messageObject.to,
                 content: base64Encrypted1,
                 createdAt: messageObject.createdAt,
+                type: messageObject.type,
             };
 
             return await this.encryptServer(currentMessage);
@@ -189,6 +216,7 @@ export class EncryptionService {
                 to: messageObject.to,
                 content: decrypted2,
                 createdAt: messageObject.createdAt,
+                type: messageObject.type,
             };
         } catch (err) {
             console.log("Error:", err);

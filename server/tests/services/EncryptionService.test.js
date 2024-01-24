@@ -12,6 +12,9 @@ const serverPublic = await keysServ.convertFromBase64PublicKey(
 const serverPrivate = await keysServ.convertFromBase64PrivateKey(
     process.env.ENCRYPTION_PRIVATE_KEY
 );
+const symmeticKey = await keysServ.convertFromBase64SymmeticKey(
+    process.env.ENCRYPTION_SYMMETRIC_KEY
+);
 
 describe("Encryption Module", () => {
     test("Encrypts a message using a public key", async () => {

@@ -65,7 +65,10 @@ io.on("connection", (socket) => {
         socket.broadcast.emit("users", activeUsers);
     });
 
-    socket.on("new private message", async (messageObject) => {
+    socket.on("new private message", async (symmetricEncryptedMessageObj) => {
+        messageObject = await encryptionServ.decryptSymmetric(
+            symmetricEncryptedMessageObj
+        );
         const id = messageObject.to.id;
         const user = activeUsers.find((user) => id === user.userId);
 
