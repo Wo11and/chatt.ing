@@ -42,7 +42,7 @@ sendButton.addEventListener("click", async (e) => {
 
     if (currentMessage) {
         const messageObject = {
-            from: { username: credentials.name, id: credentials.id }, // TODO: Add token
+            from: { username: credentials.name, id: credentials.id },
             to: { username: reciever.username, id: reciever.id },
             content: currentMessage,
             type: "text",
@@ -67,7 +67,7 @@ sendButton.addEventListener("click", async (e) => {
                 .replace(/^.+,/, "");
 
             const pictureMessage = {
-                from: { username: credentials.name, id: credentials.id }, // TODO: Add token
+                from: { username: credentials.name, id: credentials.id },
                 to: { username: reciever.username, id: reciever.id },
                 content: encodedPicture,
                 type: "picture",

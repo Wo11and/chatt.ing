@@ -18,36 +18,66 @@ export class encryptedCommunications {
         return keyDecoded;
     };
 
+    encryptToken = async (token) => {
+        const encoder = new TextEncoder();
+        const encodedToken = encoder.encode(token);
+        const encryptedToken = await crypto.subtle.encrypt(
+            {
+                name: "AES-GCM",
+                iv: new Uint8Array(12), // No randomisation
+            },
+            symmetricKey,
+            encodedToken
+        );
+        return encryptedToken;
+    };
+
+    decryptToken = async (encryptedToken) => {
+        const decryptedTokenBuffer = await crypto.subtle.decrypt(
+            {
+                name: "AES-GCM",
+                iv: new Uint8Array(12),
+            },
+            symmetricKey,
+            encryptedToken
+        );
+
+        const decoder = new TextDecoder();
+        const decryptedToken = decoder.decode(decryptedTokenBuffer);
+        return decryptedToken;
+    };
+
     encryptSymmetric = async (messageObject) => {
         const symmetricKey = await this.convertFromBase64SymmetricKey(
             frontendAddress
         );
 
         const encoder = new TextEncoder();
-        const content = encoder.encode(messageObject.content);
+        const encodedContent = encoder.encode(messageObject.content);
         const encryptedContent = await crypto.subtle.encrypt(
             {
                 name: "AES-GCM",
                 iv: new Uint8Array(12), // No randomisation included (this is [0,0,0,..])
             },
             symmetricKey,
-            content
+            encodedContent
         );
+        const encryptedToken = await this.encryptToken(messageObject.token);
         return {
             from: messageObject.from,
             to: messageObject.to,
             content: encryptedContent,
             createdAt: messageObject.createdAt,
             type: messageObject.type,
-            token: messageObject.token,
+            token: encryptedToken,
         };
     };
 
-    decryptSymmetric = async (messageObject, iv) => {
+    decryptSymmetric = async (messageObject) => {
         const symmetricKey = await this.convertFromBase64SymmetricKey(
             frontendAddress
         );
-        const decryptedBuffer = await crypto.subtle.decrypt(
+        const decryptedContentBuffer = await crypto.subtle.decrypt(
             {
                 name: "AES-GCM",
                 iv: new Uint8Array(12), // No randomisation
@@ -56,14 +86,16 @@ export class encryptedCommunications {
             messageObject.content
         );
         const decoder = new TextDecoder();
-        const decryptedMessage = decoder.decode(decryptedBuffer);
+        const decryptedContent = decoder.decode(decryptedContentBuffer);
+        const decryptedToken = await this.decryptToken(messageObject.token);
+
         return {
             from: messageObject.from,
             to: messageObject.to,
-            content: decryptedMessage,
+            content: decryptedContent,
             createdAt: messageObject.createdAt,
             type: messageObject.type,
-            token: messageObject.token,
+            token: decryptedToken,
         };
     };
 }
