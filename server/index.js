@@ -66,7 +66,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("new private message", async (symmetricEncryptedMessageObj) => {
-        messageObject = await encryptionServ.decryptSymmetric(
+        const messageObject = await encryptionServ.decryptSymmetric(
             symmetricEncryptedMessageObj
         );
         const id = messageObject.to.id;
@@ -84,6 +84,7 @@ io.on("connection", (socket) => {
         try {
             decodedToken = tokenService.verify(token);
         } catch (error) {
+            console.error(error);
             return socket.emit("unauthorized");
         }
 

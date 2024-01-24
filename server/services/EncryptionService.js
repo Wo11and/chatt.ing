@@ -11,7 +11,8 @@ const symmetricKeyBase64 = process.env.ENCRYPTION_SYMMETRIC_KEY;
 //     to: { username: reciever.username, id: reciever.id },
 //     content: currentMessage,
 //     createdAt: new Date(),
-//     type: String
+//     type: String,
+//     token: String, //optional
 // };
 
 export class EncryptionService {
@@ -104,8 +105,9 @@ export class EncryptionService {
     };
 
     decryptSymmetric = async (messageObject) => {
-        const symmetricKey =
-            this.keys.convertFromBase64SymmetricKey(symmetricKeyBase64);
+        const symmetricKey = await this.keys.convertFromBase64SymmetricKey(
+            symmetricKeyBase64
+        );
         const decryptedBuffer = await crypto.subtle.decrypt(
             {
                 name: "AES-GCM",
@@ -122,6 +124,7 @@ export class EncryptionService {
             content: decryptedMessage,
             createdAt: messageObject.createdAt,
             type: messageObject.type,
+            token: messageObject.token,
         };
     };
 
@@ -143,6 +146,7 @@ export class EncryptionService {
                 content: base64Encrypted,
                 createdAt: messageObject.createdAt,
                 type: messageObject.type,
+                token: messageObject.token,
             };
         } catch (err) {
             console.log("Error:", err);
