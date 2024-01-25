@@ -53,8 +53,6 @@ export class encryptedCommunications {
         const decoder = new TextDecoder();
         const decryptedMessageString = decoder.decode(decryptedMessageBuffer);
         const message = JSON.parse(decryptedMessageString);
-        console.log(message);
-
         return message;
     };
 }

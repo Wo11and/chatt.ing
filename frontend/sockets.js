@@ -61,12 +61,12 @@ sendButton.addEventListener("click", async (e) => {
         // console.log(file);
         const reader = new FileReader();
         let encodedPicture;
-        reader.onload = function () {
+        reader.onload = async function () {
             encodedPicture = reader.result
                 .replace("data:", "")
                 .replace(/^.+,/, "");
 
-            const pictureMessage = {
+            const pictureMessageObject = {
                 from: { username: credentials.name, id: credentials.id },
                 to: { username: reciever.username, id: reciever.id },
                 content: encodedPicture,
@@ -74,9 +74,17 @@ sendButton.addEventListener("click", async (e) => {
                 createdAt: new Date(),
                 token,
             };
-            console.log(pictureMessage);
-            socket.emit("new private message", pictureMessage);
-            displayMessage(pictureMessage, { incoming: false, bottom: true });
+            console.log(pictureMessageObject);
+            const symmetricEncryptedPictureMessageObj =
+                await encryptedComms.encryptSymmetric(pictureMessageObject);
+            socket.emit(
+                "new private message",
+                symmetricEncryptedPictureMessageObj
+            );
+            displayMessage(pictureMessageObject, {
+                incoming: false,
+                bottom: true,
+            });
             file = undefined;
         };
 
