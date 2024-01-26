@@ -1,6 +1,9 @@
 import "dotenv/config";
+import knex from "knex";
 
-export const config = {
+const environment = "development";
+
+const config = {
     development: {
         client: "postgres",
         connection: {
@@ -17,3 +20,5 @@ export const config = {
 };
 
 export default config;
+
+export const database = knex(config[environment]);
