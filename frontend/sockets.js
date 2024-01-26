@@ -129,7 +129,6 @@ socket.on("users", (users) => {
 });
 
 socket.on("private message", async (message) => {
-    console.log("received message", message);
     if (reciever && message.from.id === reciever.id) {
         const decryptedMessage =
             message.type === "picture"
@@ -150,14 +149,8 @@ socket.on("get chat", (messages) => {
         });
     });
 });
-// socket.on("connect_error", (err) => {
-//     if (err.message === "invalid credetials") {
-//  error handling
-//     }
-//   });
 
 function displayMessage(message, options) {
-    console.log(message);
     const clone = messageTemplate.content.cloneNode(true);
     let cardContent = clone.querySelector(".message");
     cardContent.classList.add(options.incoming ? "incoming" : "outgoing");
