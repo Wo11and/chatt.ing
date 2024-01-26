@@ -1,7 +1,7 @@
 import jsonwebtoken from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import "dotenv/config";
-import { database } from "../knexconfig.js";
+import { database } from "../knexfile.js";
 import { UsersDBService } from "./UsersDBService.js";
 import { EncryptionKeysService } from "./EncryptionKeysService.js";
 

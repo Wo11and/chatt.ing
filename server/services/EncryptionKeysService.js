@@ -1,4 +1,4 @@
-import { database } from "../knexconfig.js";
+import { database } from "../knexfile.js";
 
 export class EncryptionKeysService {
     convertToBase64PublicKey = async (keyPair) => {
