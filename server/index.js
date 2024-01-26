@@ -6,6 +6,8 @@ import "dotenv/config";
 import { AuthenticationService } from "./services/authenticate.js";
 import { messageService } from "./services/MessageService.js";
 import { TokenService } from "./services/TokenService.js";
+import { EncryptionService } from "./services/EncryptionService.js";
+import { EncryptionKeysService } from "./services/EncryptionKeysService.js";
 
 const app = express();
 app.use(cors());
@@ -19,6 +21,8 @@ const io = new Server(server, {
 
 const port = process.env.SERVER_PORT;
 const auth = new AuthenticationService();
+const encryptionServ = new EncryptionService();
+const keysServ = new EncryptionKeysService();
 const tokenService = new TokenService();
 
 app.use(express.json());
@@ -27,8 +31,7 @@ app.post("/login", auth.loginMiddleware);
 
 app.post("/register", auth.registerMiddleware);
 
-//check token fore every http request to the backend below this line
-// app.use(auth.checkTokenMiddleware);
+app.post("/decrypt", encryptionServ.decryptMiddleware);
 
 app.get("/authencticate", auth.checkTokenMiddleware, (req, res) => {
     res.status(200).send({ ...req.data });
@@ -46,25 +49,6 @@ io.on("connection", (socket) => {
     console.log("a user connected", socket.handshake.auth);
 });
 
-// verify the jwt token upon connecting
-// io.use(/*function that gets executed for every incoming socket*/)
-//
-// io.use((socket, next) => {
-// 	const user = verify jwt token
-// 	if (!username) {
-// 	  return next(new Error("invalid username"));
-// 	}
-// 	socket.username = user.username;
-// 	next();
-//   });
-
-// [
-// 	{
-// 		userId: 3,
-// 		socketId: 34,
-// 		username: asdf
-// 	}
-// ]
 let activeUsers = [];
 
 io.on("connection", (socket) => {
@@ -110,7 +94,31 @@ io.on("connection", (socket) => {
         }
         messageService.save(messageWithoutToken);
 
-        socket.to(socketId).emit("private message", messageWithoutToken);
+        const toPubKey = await keysServ.getPublicKey(message.to.username);
+
+        const encryptedMessage =
+            message.type === "picture"
+                ? message
+                : await encryptionServ.encrypt(message.content, toPubKey);
+
+        const encryptedMessageBase64 =
+            message.type === "picture"
+                ? message
+                : await encryptionServ.encodeArrayBuffersToBase64(
+                      encryptedMessage
+                  );
+
+        const toSend = {
+            from: message.from,
+            to: message.to,
+            content:
+                message.type === "picture"
+                    ? message.content
+                    : encryptedMessageBase64,
+            createdAt: message.createdAt,
+            type: message.type,
+        };
+        socket.to(socketId).emit("private message", toSend);
     });
 
     socket.on("get chat", async (id1, id2, token, page) => {
@@ -128,6 +136,7 @@ io.on("connection", (socket) => {
         }
 
         const result = await messageService.getConversation(id1, id2, page);
+        console.log("result:", result);
         socket.emit("get chat", result);
     });
 });

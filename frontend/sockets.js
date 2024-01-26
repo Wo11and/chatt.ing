@@ -1,5 +1,6 @@
 import { io } from "socket.io-client";
 import { localStorageSevice } from "./services/LocalStorageSevice";
+import { decryptionService } from "./services/decryptionService";
 
 const activeUsersColumn = document.getElementById("activeUsers");
 const userCardTemplate = document.querySelector("#userCardTemplate");
@@ -15,6 +16,7 @@ let currentPage = undefined;
 
 const credentials = JSON.parse(new localStorageSevice("chatting_user").get());
 const token = JSON.parse(new localStorageSevice("token").get());
+const decryption = new decryptionService();
 
 if (!credentials) {
     window.location.href = `/login.html`;
@@ -126,9 +128,17 @@ socket.on("users", (users) => {
     });
 });
 
-socket.on("private message", (message) => {
+socket.on("private message", async (message) => {
+    console.log("received message", message);
     if (reciever && message.from.id === reciever.id) {
-        displayMessage(message, { incoming: true, bottom: true });
+        const decryptedMessage =
+            message.type === "picture"
+                ? message
+                : await decryption.decrypt(
+                      message.content,
+                      message.to.username
+                  );
+        displayMessage(decryptedMessage, { incoming: true, bottom: true });
     }
 });
 
