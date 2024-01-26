@@ -59,7 +59,6 @@ export class AuthenticationService {
             await database.raw("SELECT 1");
             let user = await this.usersDB.getUser(username);
             if (user !== undefined) {
-                console.log(user);
                 // If username exists, return an error or throw an exception
                 throw new Error("Username already exists");
             }
@@ -114,7 +113,6 @@ export class AuthenticationService {
             token = token.slice(1, -1);
             jsonwebtoken.verify(token, webTokenSecret, (err, decoded) => {
                 if (err) {
-                    console.log(err);
                     return res
                         .status(401)
                         .json({ message: "Unauthorized: token not valid" })
@@ -137,7 +135,6 @@ export class AuthenticationService {
             const data = await this.register(username, password);
             res.status(200).json(data).end(); //{token, userInfo}
         } catch (err) {
-            console.log(err);
             if (err.message == "Username already exists") {
                 res.status(200).json({ register: "failed" }).end();
             } else {
@@ -150,7 +147,6 @@ export class AuthenticationService {
     loginMiddleware = async (req, res, next) => {
         const username = req.body.username;
         const password = req.body.password;
-        // console.log("credentials", username, password);
         try {
             const data = await this.login(username, password);
             res.status(200).json(data).end(); //{token, userInfo}

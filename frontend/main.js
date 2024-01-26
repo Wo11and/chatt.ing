@@ -6,7 +6,6 @@ const auth = new Authentication();
 
 try {
     const data = await auth.authenticate();
-    console.log(data);
 } catch (err) {
     console.log(err);
     window.location.replace = `${frontendAddress}/login.html`;

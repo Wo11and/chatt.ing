@@ -67,7 +67,7 @@ sendButton.addEventListener("click", (e) => {
                 createdAt: new Date(),
                 token,
             };
-            console.log(pictureMessage);
+
             socket.emit("new private message", pictureMessage);
             displayMessage(pictureMessage, { incoming: false, bottom: true });
             file = undefined;
@@ -96,7 +96,6 @@ socket.on("users", (users) => {
         const clone = userCardTemplate.content.cloneNode(true);
         let cardContent = clone.querySelectorAll("span");
         cardContent[0].textContent = user.username;
-        console.log(clone);
 
         const cardWrapper = clone.querySelector("div");
         cardWrapper.addEventListener("click", () => {
