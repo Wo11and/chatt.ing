@@ -140,6 +140,10 @@ socket.on("private message", async (message) => {
     }
 });
 
+socket.on("unauthorized", () => {
+    window.location.replace = `${frontendAddress}/login.html`;
+});
+
 socket.on("get chat", (messages) => {
     messages.forEach((message) => {
         displayMessage(message, {

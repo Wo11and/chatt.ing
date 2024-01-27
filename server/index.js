@@ -86,8 +86,7 @@ io.on("connection", (socket) => {
             decodedToken.username != message.from.username ||
             decodedToken.id != message.from.id
         ) {
-            console.error("Unauthorized", decodedToken, message.to);
-            return;
+            return socket.emit("unauthorized");
         }
         messageService.save(messageWithoutToken);
 
