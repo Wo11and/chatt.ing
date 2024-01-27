@@ -128,12 +128,11 @@ io.on("connection", (socket) => {
         }
 
         if (verifiedToken.id !== id2) {
-            console.log(verifiedToken);
             return socket.emit("unauthorized");
         }
 
         const result = await messageService.getConversation(id1, id2, page);
-        console.log("result:", result);
+
         socket.emit("get chat", result);
     });
 });

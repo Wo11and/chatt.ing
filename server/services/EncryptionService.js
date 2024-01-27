@@ -192,7 +192,6 @@ export class EncryptionService {
             };
         } catch (err) {
             console.log("Error:", err);
-            console.log(messageObject);
         }
     };
 }
