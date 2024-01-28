@@ -34,7 +34,20 @@ sendButton.addEventListener("click", async (e) => {
     if (!reciever) {
         return;
     }
+    sendMessage();
+});
 
+messageBox.addEventListener("keypress", (event) => {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        if (!reciever) {
+            return;
+        }
+        sendMessage();
+    }
+});
+
+async function sendMessage() {
     const currentMessage = messageBox.value;
     if (!currentMessage && !file) {
         return;
@@ -55,6 +68,7 @@ sendButton.addEventListener("click", async (e) => {
         socket.emit("new private message", symmetricEncryptedMessageObj);
 
         displayMessage(messageObject, { incoming: false, bottom: true });
+        messageBox.value = "";
     }
 
     if (file) {
@@ -87,10 +101,9 @@ sendButton.addEventListener("click", async (e) => {
             });
             file = undefined;
         };
-
         reader.readAsDataURL(file);
     }
-});
+}
 
 socket.auth = { name: credentials.name, id: credentials.id, token };
 socket.connect();
