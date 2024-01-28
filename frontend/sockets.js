@@ -1,5 +1,4 @@
 import { io } from "socket.io-client";
-import base64 from "base-64";
 import { localStorageSevice } from "./services/LocalStorageSevice";
 import { decryptionService } from "./services/decryptionService";
 import { encryptedCommunications } from "./services/encryptedCommsWithServer";
@@ -124,7 +123,6 @@ socket.on("users", (users) => {
         const clone = userCardTemplate.content.cloneNode(true);
         let cardContent = clone.querySelectorAll("span");
         cardContent[0].textContent = user.username;
-        console.log(clone);
 
         const cardWrapper = clone.querySelector("div");
         cardWrapper.addEventListener("click", () => {
@@ -158,7 +156,6 @@ socket.on("users", (users) => {
 });
 
 socket.on("private message", async (message) => {
-    console.log("received message", message);
     if (reciever && message.from.id === reciever.id) {
         const decryptedMessage =
             message.type === "picture"
@@ -179,14 +176,8 @@ socket.on("get chat", (messages) => {
         });
     });
 });
-// socket.on("connect_error", (err) => {
-//     if (err.message === "invalid credetials") {
-//  error handling
-//     }
-//   });
 
 function displayMessage(message, options) {
-    console.log(message);
     const clone = messageTemplate.content.cloneNode(true);
     let cardContent = clone.querySelector(".message");
     cardContent.classList.add(options.incoming ? "incoming" : "outgoing");

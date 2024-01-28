@@ -26,7 +26,7 @@ export class Authentication {
         const user = { username, password };
         try {
             const data = await this.httpServ.post("/login", user);
-            console.log(data);
+
             if (!data || data["login"] == "failed") {
                 document.getElementById("error__div").style.display = "block";
             } else {

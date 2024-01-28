@@ -11,6 +11,7 @@ import { EncryptionKeysService } from "./services/EncryptionKeysService.js";
 
 const app = express();
 app.use(cors());
+
 const server = createServer(app);
 const io = new Server(server, {
     cors: {
@@ -35,10 +36,6 @@ app.post("/decrypt", encryptionServ.decryptMiddleware);
 
 app.get("/authencticate", auth.checkTokenMiddleware, (req, res) => {
     res.status(200).send({ ...req.data });
-});
-
-app.get("/", (req, res) => {
-    res.send({ message: "Hello World!" });
 });
 
 server.listen(port, () => {
@@ -135,12 +132,11 @@ io.on("connection", (socket) => {
         }
 
         if (verifiedToken.id !== id2) {
-            console.log(verifiedToken);
             return socket.emit("unauthorized");
         }
 
         const result = await messageService.getConversation(id1, id2, page);
-        console.log("result:", result);
+
         socket.emit("get chat", result);
     });
 });
