@@ -2,6 +2,7 @@ import { io } from "socket.io-client";
 import { localStorageSevice } from "./services/LocalStorageSevice";
 import { decryptionService } from "./services/decryptionService";
 import { encryptedCommunications } from "./services/encryptedCommsWithServer";
+import { config } from "./config";
 
 const activeUsersColumn = document.getElementById("activeUsers");
 const userCardTemplate = document.querySelector("#userCardTemplate");
@@ -166,6 +167,11 @@ socket.on("private message", async (message) => {
                   );
         displayMessage(decryptedMessage, { incoming: true, bottom: true });
     }
+});
+
+socket.on("unauthorized", () => {
+    console.log("Unauth");
+    window.location.replace(`${config.frontendAddress}/login.html`);
 });
 
 socket.on("get chat", (messages) => {

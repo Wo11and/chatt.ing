@@ -1,6 +1,7 @@
 import { Authentication } from "./services/authenticationServices.js";
+import { config } from "./config.js";
+
 import "./sockets.js";
-const frontendAddress = import.meta.env.VITE_FRONTEND_ADDRESS;
 
 const auth = new Authentication();
 
@@ -8,5 +9,5 @@ try {
     const data = await auth.authenticate();
 } catch (err) {
     console.log(err);
-    window.location.replace = `${frontendAddress}/login.html`;
+    window.location.replace(`${config.frontendAddress}/login.html`);
 }
