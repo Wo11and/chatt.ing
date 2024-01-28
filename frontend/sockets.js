@@ -128,6 +128,7 @@ socket.on("users", (users) => {
 
         const cardWrapper = clone.querySelector("div");
         cardWrapper.addEventListener("click", () => {
+            document.getElementById("mainScreen").style.visibility = "visible";
             currentPage = 1;
             const id = user.userId;
             const username = user.username;
