@@ -1,8 +1,8 @@
 import { io } from "socket.io-client";
-import base64 from "base-64";
 import { localStorageSevice } from "./services/LocalStorageSevice";
 import { decryptionService } from "./services/decryptionService";
 import { encryptedCommunications } from "./services/encryptedCommsWithServer";
+import { config } from "./config";
 
 const activeUsersColumn = document.getElementById("activeUsers");
 const userCardTemplate = document.querySelector("#userCardTemplate");
@@ -34,7 +34,20 @@ sendButton.addEventListener("click", async (e) => {
     if (!reciever) {
         return;
     }
+    sendMessage();
+});
 
+messageBox.addEventListener("keypress", (event) => {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        if (!reciever) {
+            return;
+        }
+        sendMessage();
+    }
+});
+
+async function sendMessage() {
     const currentMessage = messageBox.value;
     if (!currentMessage && !file) {
         return;
@@ -55,6 +68,7 @@ sendButton.addEventListener("click", async (e) => {
         socket.emit("new private message", symmetricEncryptedMessageObj);
 
         displayMessage(messageObject, { incoming: false, bottom: true });
+        messageBox.value = "";
     }
 
     if (file) {
@@ -87,10 +101,9 @@ sendButton.addEventListener("click", async (e) => {
             });
             file = undefined;
         };
-
         reader.readAsDataURL(file);
     }
-});
+}
 
 socket.auth = { name: credentials.name, id: credentials.id, token };
 socket.connect();
@@ -111,10 +124,10 @@ socket.on("users", (users) => {
         const clone = userCardTemplate.content.cloneNode(true);
         let cardContent = clone.querySelectorAll("span");
         cardContent[0].textContent = user.username;
-        console.log(clone);
 
         const cardWrapper = clone.querySelector("div");
         cardWrapper.addEventListener("click", () => {
+            document.getElementById("mainScreen").style.visibility = "visible";
             currentPage = 1;
             const id = user.userId;
             const username = user.username;
@@ -144,7 +157,6 @@ socket.on("users", (users) => {
 });
 
 socket.on("private message", async (message) => {
-    console.log("received message", message);
     if (reciever && message.from.id === reciever.id) {
         const decryptedMessage =
             message.type === "picture"
@@ -157,6 +169,11 @@ socket.on("private message", async (message) => {
     }
 });
 
+socket.on("unauthorized", () => {
+    console.log("Unauth");
+    window.location.replace(`${config.frontendAddress}/login.html`);
+});
+
 socket.on("get chat", (messages) => {
     messages.forEach((message) => {
         displayMessage(message, {
@@ -165,14 +182,8 @@ socket.on("get chat", (messages) => {
         });
     });
 });
-// socket.on("connect_error", (err) => {
-//     if (err.message === "invalid credetials") {
-//  error handling
-//     }
-//   });
 
 function displayMessage(message, options) {
-    console.log(message);
     const clone = messageTemplate.content.cloneNode(true);
     let cardContent = clone.querySelector(".message");
     cardContent.classList.add(options.incoming ? "incoming" : "outgoing");

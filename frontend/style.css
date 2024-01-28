@@ -4,32 +4,44 @@ body {
   --incoming-background: #f3f3f3;
   --outgoing-background: #23b793;
   background-color: rgb(57, 58, 58);
+  padding: 60px;
 }
+
 h3 {
   margin: 0;
 }
 aside {
   box-shadow: 0 2px 3px grey inset;
   padding: 10px;
+  background-color: lightgrey;
+  border-radius: 8px;
+  height: fit-content;
 }
 
 main {
   display: flex;
   width: 80%;
   align-items: center;
-  justify-content: center;
   align-content: center;
   flex-direction: column;
   margin: auto;
+  height: 100vh;
+  margin: 0;
+  justify-content: flex-start;
 }
 
 #chatCanvas {
-  margin-top: 7.5vh;
-  height: 75vh;
-  overflow: scroll;
+  overflow: auto;
   width: 80%;
   background-color: dimgray;
   border-radius: 10px;
+  margin-top: 12px;
+}
+
+#chatInfo {
+  background-color: aliceblue;
+  border-radius: 8px;
+  padding: 6px 12px;
 }
 
 .buttons button {
@@ -44,10 +56,10 @@ main {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  height: 10vh;
+  margin: 20px;
 }
 
-.textareaAndButtons textarea {
+#messageBox {
   margin-right: 10px;
   width: 80%;
   border-radius: 10px;
@@ -60,6 +72,7 @@ main {
   display: flex;
   flex-direction: column;
 }
+
 .userCard {
   padding: 10px 20px;
   border-radius: 8px;
@@ -71,6 +84,7 @@ main {
 #chatCanvas {
   display: flex;
   flex-direction: column;
+  height: 70%;
 }
 
 .message {
@@ -94,4 +108,74 @@ main {
 .message > img {
   max-width: 300px;
   max-height: 300px;
+}
+
+.getMoreMessagesButton {
+  margin: 6px;
+  width: fit-content;
+  align-self: center;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 0;
+  box-shadow: none;
+}
+
+#plus {
+  display: none;
+}
+
+#addImage {
+  width: 16px;
+  height: 16px;
+  background-color: #23b793;
+  border-radius: 50%;
+  padding: 12px;
+  display: inline-block;
+  text-align: center;
+  cursor: pointer;
+  margin: 6px;
+}
+
+#sendButton {
+  border-radius: 12px;
+  border: none;
+  background-color: #23b793;
+  cursor: pointer;
+}
+
+.getMoreMessagesButton {
+  margin: 6px;
+  width: fit-content;
+  align-self: center;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 0;
+  box-shadow: none;
+}
+
+#plus {
+  display: none;
+}
+
+#addImage {
+  width: 16px;
+  height: 16px;
+  background-color: #23b793;
+  border-radius: 50%;
+  padding: 12px;
+  display: inline-block;
+  text-align: center;
+  cursor: pointer;
+  margin: 6px;
+}
+
+#sendButton {
+  border-radius: 12px;
+  border: none;
+  background-color: #23b793;
+  cursor: pointer;
+}
+
+#mainScreen {
+  visibility: hidden;
 }

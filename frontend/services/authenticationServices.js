@@ -1,6 +1,7 @@
-const frontendAddress = import.meta.env.VITE_FRONTEND_ADDRESS;
+import { config } from "../config";
 import { httpService } from "./httpService";
 
+const frontendAddress = config.frontendAddress;
 export class Authentication {
     httpServ = new httpService("http://localhost:3000");
 
@@ -26,7 +27,7 @@ export class Authentication {
         const user = { username, password };
         try {
             const data = await this.httpServ.post("/login", user);
-            console.log(data);
+
             if (!data || data["login"] == "failed") {
                 document.getElementById("error__div").style.display = "block";
             } else {

@@ -8,7 +8,7 @@
   </head>
   <body>
     <header><!--Header of site--></header>
-    <main>
+    <main id="mainScreen">
       <!--Current chat if open-->
       <div id="chatInfo"><!--Info about current chat--></div>
       <div id="chatCanvas"><!--Chat itself--></div>
@@ -18,6 +18,7 @@
           <div class="message"></div>
         </template>
         <div class="buttons">
+          <label for="plus" id="addImage">+</label>
           <input id="plus" type="file" />
 
           <button id="sendButton">Send</button>
