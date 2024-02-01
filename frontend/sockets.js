@@ -1,6 +1,8 @@
 import { io } from "socket.io-client";
 import { localStorageSevice } from "./services/LocalStorageSevice";
 import { decryptionService } from "./services/decryptionService";
+import { encryptedCommunications } from "./services/encryptedCommsWithServer";
+import { config } from "./config";
 
 const activeUsersColumn = document.getElementById("activeUsers");
 const userCardTemplate = document.querySelector("#userCardTemplate");
@@ -17,6 +19,7 @@ let currentPage = undefined;
 const credentials = JSON.parse(new localStorageSevice("chatting_user").get());
 const token = JSON.parse(new localStorageSevice("token").get());
 const decryption = new decryptionService();
+const encryptedComms = new encryptedCommunications();
 
 if (!credentials) {
     window.location.href = `/login.html`;
@@ -26,56 +29,81 @@ const socket = io(import.meta.env.VITE_SERVER_ADRESS, {
     autoConnect: false,
 });
 
-sendButton.addEventListener("click", (e) => {
+sendButton.addEventListener("click", async (e) => {
     e.preventDefault();
     if (!reciever) {
         return;
     }
+    sendMessage();
+});
 
+messageBox.addEventListener("keypress", (event) => {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        if (!reciever) {
+            return;
+        }
+        sendMessage();
+    }
+});
+
+async function sendMessage() {
     const currentMessage = messageBox.value;
     if (!currentMessage && !file) {
         return;
     }
 
     if (currentMessage) {
-        const message = {
-            from: { username: credentials.name, id: credentials.id }, // TODO: Add token
+        const messageObject = {
+            from: { username: credentials.name, id: credentials.id },
             to: { username: reciever.username, id: reciever.id },
             content: currentMessage,
+            type: "text",
             createdAt: new Date(),
             token,
         };
-        socket.emit("new private message", message);
 
-        displayMessage(message, { incoming: false, bottom: true });
+        const symmetricEncryptedMessageObj =
+            await encryptedComms.encryptSymmetric(messageObject);
+        socket.emit("new private message", symmetricEncryptedMessageObj);
+
+        displayMessage(messageObject, { incoming: false, bottom: true });
+        messageBox.value = "";
     }
 
     if (file) {
         // console.log(file);
         const reader = new FileReader();
         let encodedPicture;
-        reader.onload = function () {
+        reader.onload = async function () {
             encodedPicture = reader.result
                 .replace("data:", "")
                 .replace(/^.+,/, "");
 
-            const pictureMessage = {
-                from: { username: credentials.name, id: credentials.id }, // TODO: Add token
+            const pictureMessageObject = {
+                from: { username: credentials.name, id: credentials.id },
                 to: { username: reciever.username, id: reciever.id },
                 content: encodedPicture,
                 type: "picture",
                 createdAt: new Date(),
                 token,
             };
-
-            socket.emit("new private message", pictureMessage);
-            displayMessage(pictureMessage, { incoming: false, bottom: true });
+            console.log(pictureMessageObject);
+            const symmetricEncryptedPictureMessageObj =
+                await encryptedComms.encryptSymmetric(pictureMessageObject);
+            socket.emit(
+                "new private message",
+                symmetricEncryptedPictureMessageObj
+            );
+            displayMessage(pictureMessageObject, {
+                incoming: false,
+                bottom: true,
+            });
             file = undefined;
         };
-
         reader.readAsDataURL(file);
     }
-});
+}
 
 socket.auth = { name: credentials.name, id: credentials.id, token };
 socket.connect();
@@ -99,6 +127,7 @@ socket.on("users", (users) => {
 
         const cardWrapper = clone.querySelector("div");
         cardWrapper.addEventListener("click", () => {
+            document.getElementById("mainScreen").style.visibility = "visible";
             currentPage = 1;
             const id = user.userId;
             const username = user.username;
@@ -138,6 +167,11 @@ socket.on("private message", async (message) => {
                   );
         displayMessage(decryptedMessage, { incoming: true, bottom: true });
     }
+});
+
+socket.on("unauthorized", () => {
+    console.log("Unauth");
+    window.location.replace(`${config.frontendAddress}/login.html`);
 });
 
 socket.on("get chat", (messages) => {

@@ -142,3 +142,40 @@ main {
   background-color: #23b793;
   cursor: pointer;
 }
+
+.getMoreMessagesButton {
+  margin: 6px;
+  width: fit-content;
+  align-self: center;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 0;
+  box-shadow: none;
+}
+
+#plus {
+  display: none;
+}
+
+#addImage {
+  width: 16px;
+  height: 16px;
+  background-color: #23b793;
+  border-radius: 50%;
+  padding: 12px;
+  display: inline-block;
+  text-align: center;
+  cursor: pointer;
+  margin: 6px;
+}
+
+#sendButton {
+  border-radius: 12px;
+  border: none;
+  background-color: #23b793;
+  cursor: pointer;
+}
+
+#mainScreen {
+  visibility: hidden;
+}
