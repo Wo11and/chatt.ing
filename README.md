@@ -23,8 +23,15 @@ Attaching an image is also supported and encrypted using a symmetric key.
 - Postgres
 
 ### Sample mock-up:
+![chat](https://github.com/Wo11and/chatt.ing/assets/28302944/a00bc613-953d-48ca-a5b8-504b92741435)
 
-![design](https://github.com/Wo11and/chatt.ing/assets/93873508/32e67ae5-0b4a-4c38-8c28-c76383028867)
+### Graphs showing Encryption & Decryption
+#### Sending Message
+![SendMessage2](https://github.com/Wo11and/chatt.ing/assets/28302944/bb8afd77-7166-49d4-b6eb-d711d6adb58c)
+#### Loading Chat from DataBase
+![LoadMessage2](https://github.com/Wo11and/chatt.ing/assets/28302944/62428657-39a9-413f-9262-8f2f5af8355b)
+
+
 
 ### Future improvements:
 
