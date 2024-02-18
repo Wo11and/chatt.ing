@@ -10,7 +10,9 @@ const messageBox = document.querySelector("#messageBox");
 const chatCanvas = document.querySelector("#chatCanvas");
 const messageTemplate = document.querySelector("#messageTemplate");
 const addButton = document.querySelector("#plus");
+const alert = document.querySelector("#alert");
 
+let recieverId;
 let reciever = undefined;
 let currentPage = undefined;
 
@@ -100,11 +102,11 @@ socket.on("users", (users) => {
         const cardWrapper = clone.querySelector("div");
         cardWrapper.addEventListener("click", () => {
             currentPage = 1;
-            const id = user.userId;
+            recieverId = user.userId;
             const username = user.username;
-            reciever = { id, username };
+            reciever = { id: recieverId, username };
 
-            const chatData = [id, credentials.id, token];
+            const chatData = [recieverId, credentials.id, token];
 
             chatInfo.innerHTML = "";
             chatInfo.textContent = `Chat with ${username}`;
@@ -128,6 +130,13 @@ socket.on("users", (users) => {
 });
 
 socket.on("private message", async (message) => {
+    alert.innerHTML = `New message from ${message.from.username}`;
+    console.log(alert.style.display);
+    alert.style.visibility = "visible";
+
+    setTimeout(() => {
+        alert.style.visibility = "hidden";
+    }, 3000);
     if (reciever && message.from.id === reciever.id) {
         const decryptedMessage =
             message.type === "picture"
@@ -141,12 +150,23 @@ socket.on("private message", async (message) => {
 });
 
 socket.on("get chat", (messages) => {
+    let firstFetch = false;
+    console.log(chatCanvas.children[0].type);
+    if (
+        chatCanvas.children[0].type == "button" &&
+        chatCanvas.children.length <= 1
+    ) {
+        firstFetch = true;
+    }
     messages.forEach((message) => {
         displayMessage(message, {
             incoming: message.to.id === credentials.id,
             bottom: false,
         });
     });
+    if (firstFetch) {
+        chatCanvas.scrollTop = chatCanvas.scrollHeight;
+    }
 });
 
 function displayMessage(message, options) {
@@ -165,10 +185,40 @@ function displayMessage(message, options) {
     options.bottom
         ? chatCanvas.appendChild(clone)
         : getMoreMessagesButton.after(clone);
+
+    chatCanvas.scrollTo(0, 500);
 }
 
 let file = undefined;
 
 addButton.addEventListener("change", (e) => {
     file = e.target.files[0];
+});
+
+chatCanvas.addEventListener("scroll", (e) => {
+    if (e.target.scrollTop === 0) {
+        console.log("reached");
+        fetchMessages();
+    }
+});
+
+function debounce(asyncFunc) {
+    let debounce = 0;
+
+    const debouncedFunction = async (...args) => {
+        if (debounce) {
+            return;
+        }
+
+        debounce = 1;
+        await asyncFunc(...args);
+        debounce = 0;
+    };
+
+    return debouncedFunction;
+}
+
+const fetchMessages = debounce(() => {
+    const chatData = [recieverId, credentials.id, token];
+    socket.emit("get chat", ...chatData, currentPage++);
 });
