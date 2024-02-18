@@ -23,6 +23,14 @@ export class EncryptionKeysService {
         return privateKeyBase64;
     };
 
+    convertToBase64SymmetricKey = async (key) => {
+        const keyBuffer = await crypto.subtle.exportKey("raw", key);
+        const keyBase64 = btoa(
+            String.fromCharCode.apply(null, new Uint8Array(keyBuffer))
+        );
+        return keyBase64;
+    };
+
     convertFromBase64PublicKey = async (base64PublicKey) => {
         // Decode the base64-encoded public key
         const publicKeyBinary = atob(base64PublicKey);
@@ -69,6 +77,23 @@ export class EncryptionKeysService {
         // Now you can use the imported private key for decryption
         // For example, you can use crypto.subtle.decrypt()
         return importedPrivateKey;
+    };
+
+    convertFromBase64SymmetricKey = async (keyBase64) => {
+        const keyBufferDecoded = new Uint8Array(
+            atob(keyBase64)
+                .split("")
+                .map((char) => char.charCodeAt(0))
+        );
+        const keyDecoded = await crypto.subtle.importKey(
+            "raw",
+            keyBufferDecoded,
+            { name: "AES-GCM", length: 256 },
+            true,
+            ["encrypt", "decrypt"]
+        );
+
+        return keyDecoded;
     };
 
     getPublicKey = async (username) => {

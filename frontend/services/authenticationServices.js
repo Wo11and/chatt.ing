@@ -1,6 +1,7 @@
-const frontendAddress = import.meta.env.VITE_FRONTEND_ADDRESS;
+import { config } from "../config";
 import { httpService } from "./httpService";
 
+const frontendAddress = config.frontendAddress;
 export class Authentication {
     httpServ = new httpService("http://localhost:3000");
 
