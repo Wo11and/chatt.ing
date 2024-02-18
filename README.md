@@ -27,9 +27,9 @@ Attaching an image is also supported and encrypted using a symmetric key.
 
 ### Graphs showing Encryption & Decryption
 #### Sending Message
-![SendMessage2](https://github.com/Wo11and/chatt.ing/assets/28302944/bb8afd77-7166-49d4-b6eb-d711d6adb58c)
+![mermaid-diagram-2024-02-18-120453](https://github.com/Wo11and/chatt.ing/assets/28302944/24401800-c658-4a94-b8ef-f08ee63b4add)
 #### Loading Chat from DataBase
-![LoadMessage2](https://github.com/Wo11and/chatt.ing/assets/28302944/62428657-39a9-413f-9262-8f2f5af8355b)
+![mermaid-diagram-2024-02-18-115907](https://github.com/Wo11and/chatt.ing/assets/28302944/e4b5d8a2-19ee-451d-9e7f-b93014974343)
 
 
 
