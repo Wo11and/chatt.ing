@@ -4,7 +4,8 @@ body {
   --incoming-background: #f3f3f3;
   --outgoing-background: #23b793;
   background-color: rgb(57, 58, 58);
-  padding: 60px;
+  height: 100vh; 
+  margin:0 ;
 }
 
 h3 {
@@ -16,17 +17,17 @@ aside {
   background-color: lightgrey;
   border-radius: 8px;
   height: fit-content;
+  margin-right: 50px;
+  margin-top: 50px;
 }
 
 main {
   display: flex;
-  width: 80%;
+  width: 90%;
   align-items: center;
   align-content: center;
   flex-direction: column;
-  margin: auto;
-  height: 100vh;
-  margin: 0;
+  margin: 0 auto;
   justify-content: flex-start;
 }
 
@@ -35,13 +36,14 @@ main {
   width: 80%;
   background-color: dimgray;
   border-radius: 10px;
-  margin-top: 12px;
+  margin-top: 30px;
 }
 
 #chatInfo {
   background-color: aliceblue;
   border-radius: 8px;
   padding: 6px 12px;
+  margin-top: 50px;
 }
 
 .buttons button {
@@ -129,48 +131,17 @@ main {
   height: 16px;
   background-color: #23b793;
   border-radius: 50%;
-  padding: 12px;
+  padding: 16px;
   display: inline-block;
   text-align: center;
+  line-height: 1;
   cursor: pointer;
   margin: 6px;
 }
 
 #sendButton {
   border-radius: 12px;
-  border: none;
-  background-color: #23b793;
-  cursor: pointer;
-}
-
-.getMoreMessagesButton {
-  margin: 6px;
-  width: fit-content;
-  align-self: center;
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: 0;
-  box-shadow: none;
-}
-
-#plus {
-  display: none;
-}
-
-#addImage {
-  width: 16px;
-  height: 16px;
-  background-color: #23b793;
-  border-radius: 50%;
-  padding: 12px;
-  display: inline-block;
-  text-align: center;
-  cursor: pointer;
-  margin: 6px;
-}
-
-#sendButton {
-  border-radius: 12px;
+  padding:16px;
   border: none;
   background-color: #23b793;
   cursor: pointer;

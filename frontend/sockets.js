@@ -39,6 +39,14 @@ sendButton.addEventListener("click", async (e) => {
     sendMessage();
 });
 
+alert.addEventListener("click", (e) => {
+    e.preventDefault();
+    if (e.target.style.visibility == "visible") {
+        chatCanvas.scrollTop = chatCanvas.scrollTopMax;
+        e.target.style.visibility = "hidden";
+    }
+});
+
 messageBox.addEventListener("keypress", (event) => {
     if (event.key === "Enter") {
         event.preventDefault();
@@ -105,6 +113,7 @@ async function sendMessage() {
         };
         reader.readAsDataURL(file);
     }
+    chatCanvas.scrollTop = chatCanvas.scrollHeight;
 }
 
 socket.auth = { name: credentials.name, id: credentials.id, token };
@@ -159,13 +168,6 @@ socket.on("users", (users) => {
 });
 
 socket.on("private message", async (message) => {
-    alert.innerHTML = `New message from ${message.from.username}`;
-    console.log(alert.style.display);
-    alert.style.visibility = "visible";
-
-    setTimeout(() => {
-        alert.style.visibility = "hidden";
-    }, 3000);
     if (reciever && message.from.id === reciever.id) {
         const decryptedMessage =
             message.type === "picture"
@@ -174,7 +176,24 @@ socket.on("private message", async (message) => {
                       message.content,
                       message.to.username
                   );
-        displayMessage(decryptedMessage, { incoming: true, bottom: true });
+        const currentScrollHeight = chatCanvas.scrollTop;
+        const maxScrollHeight = chatCanvas.scrollTopMax;
+        displayMessage(decryptedMessage, {
+            incoming: true,
+            bottom: true,
+        });
+        if (currentScrollHeight == maxScrollHeight) {
+            chatCanvas.scrollTop = chatCanvas.scrollTopMax;
+        } else {
+            console.log(currentScrollHeight, maxScrollHeight);
+            alert.innerHTML = `New message from ${message.from.username}`;
+            console.log(alert.style.display);
+            alert.style.visibility = "visible";
+
+            setTimeout(() => {
+                alert.style.visibility = "hidden";
+            }, 3000);
+        }
     }
 });
 
@@ -192,14 +211,17 @@ socket.on("get chat", (messages) => {
     ) {
         firstFetch = true;
     }
+    let newMessagesHeight = 0;
     messages.forEach((message) => {
-        displayMessage(message, {
+        newMessagesHeight += displayMessage(message, {
             incoming: message.to.id === credentials.id,
             bottom: false,
         });
     });
     if (firstFetch) {
         chatCanvas.scrollTop = chatCanvas.scrollHeight;
+    } else {
+        chatCanvas.scrollTop = newMessagesHeight;
     }
 });
 
@@ -215,12 +237,13 @@ function displayMessage(message, options) {
     const getMoreMessagesButton = document.getElementsByClassName(
         "getMoreMessagesButton"
     )[0];
+    const oldHeight = chatCanvas.scrollHeight;
 
     options.bottom
         ? chatCanvas.appendChild(clone)
         : getMoreMessagesButton.after(clone);
 
-    chatCanvas.scrollTo(0, 500);
+    return chatCanvas.scrollHeight - oldHeight;
 }
 
 let file = undefined;
@@ -231,7 +254,6 @@ addButton.addEventListener("change", (e) => {
 
 chatCanvas.addEventListener("scroll", (e) => {
     if (e.target.scrollTop === 0) {
-        console.log("reached");
         fetchMessages();
     }
 });
